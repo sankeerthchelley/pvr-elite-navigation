@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PVR Elite — Navigation</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{background:#eaecf2;font-family:"Segoe UI",Arial,sans-serif;display:flex;flex-direction:column;}
+
+#topbar{width:100%;background:#1a1f2e;padding:10px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.6);border-bottom:1px solid #2a3248;}
+.logo{color:#e2502e;font-weight:900;font-size:20px;letter-spacing:2px;}
+.logo span{color:#f3eee2;}
+.tagline{color:#5a6a86;font-size:12px;letter-spacing:1px;}
+.hint-chip{margin-left:auto;background:#1e2a42;border:1px solid #2e3f66;color:#7ec8e3;padding:6px 14px;border-radius:20px;font-size:12px;}
+#block-btns{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;}
+.blk-btn{padding:8px 18px;background:#1e2a40;border:1.5px solid #2a3a56;border-radius:8px;color:#e2502e;font-size:14px;font-weight:900;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.blk-btn:hover{background:#2a3050;border-color:#e2502e;}
+.blk-btn.sel{background:#e2502e;color:#fff;border-color:#e2502e;}
+.sel-row{width:100%;background:#131926;padding:9px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #1e2a3e;}
+.sel-row.hidden{display:none;}
+.sel-row-lbl{font-size:10px;color:#3a4a6a;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;margin-right:4px;}
+.floor-code-btn{padding:10px 22px;background:#1e2a40;border:1.5px solid #2a3a56;border-radius:10px;color:#7ec8e3;font-size:18px;font-weight:900;cursor:pointer;transition:all .15s;}
+.floor-code-btn:hover{background:#1a3a60;border-color:#7ec8e3;}
+.floor-code-btn.sel{background:#7ec8e3;color:#0f111a;border-color:#7ec8e3;}
+.flat-code-btn{padding:7px 12px;background:#1e2a40;border:1.5px solid #2a3a56;border-radius:8px;color:#c8d0e0;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.flat-code-btn:hover{background:#2a3050;border-color:#e2502e;color:#fff;}
+.flat-code-btn.sel{background:#e2502e;color:#fff;border-color:#e2502e;}
+
+#layout{display:flex;flex:1;min-height:0;overflow:hidden;position:relative;}
+
+#map-wrap{flex:1;min-width:0;overflow:hidden;position:relative;}
+svg{display:block;width:100%;height:100%;}
+
+/* BLOCK ZONES */
+.block-zone{cursor:pointer;fill:transparent;stroke:transparent;stroke-width:0;transition:fill .2s,stroke .2s;}
+.block-zone:hover{fill:rgba(226,80,46,.08);stroke:#e2502e;stroke-width:3;stroke-dasharray:8 5;}
+.block-zone.active{fill:rgba(226,80,46,.14);stroke:#e2502e;stroke-width:3;}
+
+/* FLAT ZONES */
+.flat-zone{cursor:pointer;fill:transparent;transition:fill .15s;}
+.flat-zone:hover{fill:rgba(126,200,227,.2);}
+.flat-zone.picked{fill:rgba(226,80,46,.35);stroke:#e2502e;stroke-width:4;}
+
+/* AMENITY ZONES */
+.amenity-zone{cursor:pointer;fill:transparent;transition:fill .15s;}
+.amenity-zone:hover{fill:rgba(126,200,227,.25);}
+.amenity-zone.picked{fill:rgba(126,200,227,.4);}
+
+/* LIFT MARKERS */
+.lift-marker{pointer-events:none;}
+
+/* ROUTE */
+#route-path{fill:none;stroke:#e2502e;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:22 12;animation:dash 1s linear infinite;filter:drop-shadow(0 0 8px rgba(226,80,46,.8));opacity:0;transition:opacity .4s;pointer-events:none;}
+#route-path.on{opacity:1;}
+@keyframes dash{to{stroke-dashoffset:-68;}}
+.pin-s{fill:#e2502e;filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));}
+.pin-d{fill:#7ec8e3;filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));}
+
+/* NAV PANEL — overridden below by sidebar styles */
+
+/* FLAT PICKER */
+.picker-label{font-size:11px;color:#5a6a86;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.flat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:18px;}
+.flat-btn{padding:9px 4px;background:#1e2a40;border:1.5px solid #2a3a56;border-radius:8px;color:#c8d0e0;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;}
+.flat-btn:hover{background:#2a3f66;border-color:#e2502e;color:#fff;}
+.flat-btn.sel{background:#e2502e;border-color:#e2502e;color:#fff;}
+
+/* FLOOR PICKER */
+.floor-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;}
+.floor-btn{padding:14px 4px;background:#1e2a40;border:1.5px solid #2a3a56;border-radius:10px;color:#7ec8e3;font-size:18px;font-weight:900;cursor:pointer;text-align:center;transition:all .15s;}
+.floor-btn:hover{background:#1a3a60;border-color:#7ec8e3;color:#fff;}
+.floor-btn.sel{background:#7ec8e3;color:#0f111a;border-color:#7ec8e3;}
+.floor-note{font-size:11px;color:#5a6a86;margin-bottom:14px;line-height:1.5;}
+
+/* NAV STEPS */
+.nav-section-title{font-size:11px;color:#5a6a86;text-transform:uppercase;letter-spacing:.8px;margin:14px 0 8px;}
+.step{display:flex;gap:10px;align-items:flex-start;margin-bottom:9px;padding:10px 12px;background:#1a2235;border-radius:9px;border-left:3px solid #2a3a56;}
+.step.highlight{border-left-color:#e2502e;}
+.step.lift-step{border-left-color:#f0c030;background:#1e2418;}
+.step.dest-step{border-left-color:#7ec8e3;background:#121e2e;}
+.step-num{width:26px;height:26px;border-radius:50%;background:#2a3a56;color:#7ec8e3;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step.lift-step .step-num{background:#3a3200;color:#f0c030;}
+.step.dest-step .step-num{background:#0e2035;color:#7ec8e3;}
+.step-text{color:#b0bcd0;font-size:13px;line-height:1.55;}
+.step-text strong{color:#f3eee2;}
+.step-text .lift-tag{display:inline-block;background:#3a3200;color:#f0c030;border:1px solid #6a5800;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;margin-top:4px;}
+.step-text .btn-tag{display:inline-block;background:#1a3800;color:#7ef07e;border:1px solid #2a6800;border-radius:6px;padding:3px 10px;font-size:14px;font-weight:900;margin-top:4px;letter-spacing:1px;}
+.flat-summary{background:#1e2a40;border:1.5px solid #2a3a56;border-radius:10px;padding:14px;margin-bottom:14px;}
+.flat-summary .fs-id{font-size:22px;font-weight:900;color:#e2502e;}
+.flat-summary .fs-detail{font-size:13px;color:#7ec8e3;margin-top:2px;}
+.back-btn{width:100%;padding:10px;background:#1a2235;border:1.5px solid #2a3a56;color:#8a9ab5;border-radius:8px;font-size:13px;cursor:pointer;margin-top:10px;}
+.back-btn:hover{border-color:#e2502e;color:#e2502e;}
+
+/* AMENITY PANEL */
+.amenity-icon-big{font-size:48px;text-align:center;margin-bottom:8px;}
+.amenity-desc{color:#8a9ab5;font-size:13px;line-height:1.6;margin-bottom:14px;}
+
+/* LEGEND BAR */
+#legend-bar{width:100%;background:#1a1f2e;padding:8px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #222d45;}
+.leg-icon{width:42px;height:42px;border-radius:10px;background:#1e2a40;border:1.5px solid #2a3a56;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:all .15s;position:relative;}
+.leg-icon:hover{background:#2a3f66;border-color:#7ec8e3;transform:translateY(-2px);}
+.leg-icon.active{background:#1e3060;border-color:#7ec8e3;}
+.leg-icon[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#0f111a;color:#f3eee2;font-size:11px;padding:4px 8px;border-radius:6px;white-space:nowrap;border:1px solid #2a3a56;pointer-events:none;z-index:200;}
+.leg-sep{width:1px;height:28px;background:#2a3a56;margin:0 4px;}
+.leg-label{font-size:11px;color:#3a4a5e;margin-left:auto;}
+
+/* TOAST */
+/* Sidebar footer — share buttons */
+#sidebar-footer{flex-shrink:0;display:flex;gap:8px;padding:12px 14px;border-top:1px solid #e8eaed;background:#f8f9fc;}
+.share-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 10px;border-radius:10px;border:1.5px solid #dde2ec;background:#f4f6fb;color:#6a7a90;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;}
+.share-btn svg{width:17px;height:17px;flex-shrink:0;}
+.share-btn:not(:disabled):hover{background:#fff;border-color:#e2502e;color:#e2502e;}
+.share-btn.share-wa:not(:disabled){border-color:#c8e6c0;background:#f0fff0;color:#25a244;}
+.share-btn.share-wa:not(:disabled):hover{background:#e0f8e0;border-color:#25a244;}
+.share-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(40px);background:#1e2535;color:#f3eee2;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 24px rgba(0,0,0,.5);z-index:300;transition:transform .25s;pointer-events:none;border:1px solid #3a4560;opacity:0;}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+@media(max-width:700px){
+  #topbar{padding:8px 14px;}
+  .logo{font-size:16px;}
+  #layout{flex-direction:column;}
+  #sidebar{width:100%;height:auto;border-left:none;border-top:2px solid #e0e4ec;max-height:52vh;flex-direction:row;overflow:hidden;}
+  #sidebar-controls{display:flex;flex-direction:row;overflow-x:auto;flex-shrink:0;}
+  .sb-section{padding:8px 12px;border-bottom:none;border-right:1px solid #f0f2f8;min-width:max-content;}
+  #nav-panel{flex:1;overflow:hidden;min-width:0;}
+  .leg-icon{width:32px;height:32px;font-size:15px;}
+  .blk-btn{padding:5px 9px;font-size:12px;}
+  .flat-search-input{font-size:18px;width:88px;}
+  .search-hint{display:none;}
+}
+
+/* ══ WHITE THEME ══════════════════════════════════════════════════ */
+body{background:#eaecf2;}
+.hidden{display:none!important;}
+
+/* Topbar — minimal, title only */
+#topbar{background:#fff;border-bottom:1px solid #e0e4ec;box-shadow:0 1px 8px rgba(0,0,0,.07);
+  display:flex;align-items:center;padding:10px 22px;gap:10px;flex-shrink:0;}
+.logo{color:#1a2035;font-size:18px;font-weight:900;letter-spacing:2px;}
+.logo span{color:#e2502e;}
+.tagline{color:#9aacca;font-size:10px;letter-spacing:1.5px;}
+
+/* Sidebar toggle button */
+#sidebar-toggle{margin-left:auto;width:36px;height:36px;border-radius:8px;background:#f4f6fb;border:1.5px solid #dde2ec;color:#555;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+#sidebar-toggle:hover{background:#fff0ec;border-color:#e2502e;color:#e2502e;}
+
+/* Right sidebar */
+#sidebar{width:300px;flex-shrink:0;background:#fff;border-left:2px solid #e0e4ec;display:flex;flex-direction:column;overflow:hidden;}
+#sidebar-controls{flex-shrink:0;}
+.sb-section{padding:12px 16px;border-bottom:1px solid #f0f2f8;}
+.sb-label{font-size:10px;font-weight:700;color:#aab8d0;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;}
+.amenity-icons-row{display:flex;flex-wrap:wrap;gap:5px;}
+.block-btns-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+
+/* Legend icons in sidebar */
+.leg-icon{background:#f4f6fb;border:1.5px solid #dde2ec;color:#555;}
+.leg-icon:hover{background:#fff0ec;border-color:#e2502e;transform:translateY(-2px);}
+.leg-icon.active{background:#fff0ec;border-color:#e2502e;}
+.leg-icon[data-tip]:hover::after{background:#1a2035;border-color:#3a4560;}
+
+/* Block label + buttons in sidebar */
+.blk-label{font-size:11px;font-weight:700;color:#9aacca;letter-spacing:1px;white-space:nowrap;}
+.blk-btn{padding:7px 14px;font-size:13px;background:#f4f6fb;border-color:#dde2ec;color:#e2502e;}
+.blk-btn:hover{background:#fff0ec;border-color:#e2502e;}
+.blk-btn.sel{background:#e2502e;color:#fff;border-color:#e2502e;}
+
+/* Search in sidebar */
+.flat-search-wrap{display:flex;align-items:flex-start;flex-direction:column;gap:6px;}
+.flat-search-input{padding:9px 16px;background:#fff;border:2px solid #c8d4e8;border-radius:10px;color:#1a2035;font-size:22px;font-weight:900;width:110px;text-align:center;letter-spacing:6px;outline:none;transition:border-color .15s;}
+.flat-search-input:focus{border-color:#7ec8e3;}
+.flat-search-input.valid{border-color:#4ca86c;background:#f0fff5;}
+.flat-search-input.invalid{border-color:#e2502e;background:#fff5f3;}
+.search-error{font-size:12px;font-weight:600;color:#e2502e;min-height:16px;}
+.search-error.ok{color:#4ca86c;}
+.search-hint{font-size:11px;color:#aab8d0;line-height:1.5;}
+
+/* Nav directions panel inside sidebar */
+#nav-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+#panel-head{background:#f8f9fc;border-bottom:1px solid #e8eaed;padding:12px 16px;flex-shrink:0;display:flex;align-items:center;gap:8px;}
+#panel-head-title{color:#e2502e;font-size:14px;font-weight:800;flex:1;}
+#panel-close{background:none;border:none;color:#aab8d0;font-size:18px;cursor:pointer;padding:2px 6px;}
+#panel-close:hover{color:#e2502e;}
+#panel-body{flex:1;overflow-y:auto;padding:14px 16px;}
+.picker-label{color:#aab8d0;}
+.flat-btn{background:#f4f6fb;border-color:#dde2ec;color:#4a5568;}
+.flat-btn:hover{background:#fff0ec;border-color:#e2502e;color:#e2502e;}
+.flat-btn.sel{background:#e2502e;border-color:#e2502e;color:#fff;}
+.floor-btn{background:#f4f6fb;border-color:#dde2ec;color:#2a6080;}
+.floor-btn:hover{background:#e8f4fc;border-color:#5ab8d8;color:#1a2035;}
+.floor-btn.sel{background:#5ab8d8;color:#fff;border-color:#4aa8c8;}
+.floor-note{color:#aab8d0;}
+.nav-section-title{color:#aab8d0;}
+.flat-summary{background:#f4f6fb;border-color:#dde2ec;}
+.flat-summary .fs-id{color:#e2502e;}
+.flat-summary .fs-detail{color:#5a80a0;}
+.step{background:#f8f9fc;border-left-color:#dde2ec;}
+.step.highlight{border-left-color:#e2502e;}
+.step.lift-step{border-left-color:#d09020;background:#fffbf2;}
+.step.dest-step{border-left-color:#2090a8;background:#f0fafc;}
+.step-num{background:#dde2ec;color:#6a7a90;}
+.step.lift-step .step-num{background:#f8e8a0;color:#806000;}
+.step.dest-step .step-num{background:#b8e4f0;color:#006080;}
+.step-text{color:#4a5a6e;}
+.step-text strong{color:#1a2035;}
+.step-text .lift-tag{background:#fdf0c0;color:#806020;border-color:#d0c060;}
+.step-text .btn-tag{background:#e0f0e0;color:#2a6a20;border-color:#80c070;}
+.back-btn{background:#f4f6fb;border-color:#dde2ec;color:#6a7a90;}
+.back-btn:hover{border-color:#e2502e;color:#e2502e;}
+.amenity-desc{color:#5a7090;}
+#toast{background:#1a2035;color:#f3eee2;border-color:#3a4560;}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="logo">PVR <span>Elite</span></div>
+  <div class="tagline">GATED COMMUNITY NAVIGATOR · KANURU, VIJAYAWADA</div>
+  <button id="sidebar-toggle" onclick="toggleSidebar()" title="Show/hide panel">☰</button>
+</div>
+
+<div id="layout">
+<div id="map-wrap">
+<svg id="mainSvg" viewBox="360 -30 2230 1270" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="roofGrid" width="26" height="26" patternUnits="userSpaceOnUse"><rect width="26" height="26" fill="#c7ccd6"/><path d="M0 0H26M0 0V26" stroke="#b6bcc9" stroke-width="1.2"/></pattern>
+    <pattern id="fieldRows" width="80" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(6)"><rect width="80" height="40" fill="#5d6b3f"/><rect y="26" width="80" height="14" fill="#54623a"/></pattern>
+    <pattern id="lawnTex" width="56" height="56" patternUnits="userSpaceOnUse"><rect width="56" height="56" fill="#7aa845"/><circle cx="13" cy="17" r="1.5" fill="#6a9a3c"/><circle cx="40" cy="38" r="1.5" fill="#86b350"/></pattern>
+    <pattern id="lattice" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="20" height="20" fill="#eef0ee"/><path d="M0 0H20M0 0V20" stroke="#9db86a" stroke-width="4"/></pattern>
+    <pattern id="net" width="11" height="11" patternUnits="userSpaceOnUse"><rect width="11" height="11" fill="#4f7d3a"/><path d="M0 0H11M0 0V11" stroke="#cfe3c0" stroke-width=".9"/></pattern>
+    <g id="marker"><circle r="17" fill="#fff" stroke="#e2502e" stroke-width="2.5"/></g>
+    <g id="tree"><circle r="20" fill="#8fae3e"/><circle cx="-6" cy="-5" r="9" fill="#a4c24a" opacity=".8"/><circle cx="7" cy="6" r="8" fill="#6f8f33" opacity=".7"/></g>
+    <g id="treeSmall"><circle r="12" fill="#9bb845"/><circle cx="-4" cy="-3" r="5" fill="#b3cf5d" opacity=".8"/></g>
+    <g id="treeDark"><circle r="22" fill="#54712c"/><circle cx="-7" cy="-6" r="9" fill="#6c8b3a" opacity=".8"/></g>
+    <g id="palm"><g stroke="#5d7a2c" stroke-width="5" stroke-linecap="round" fill="none"><path d="M0 0 C 13 -7, 24 -6, 33 3"/><path d="M0 0 C -13 -7, -24 -6, -33 3"/><path d="M0 0 C 9 -14, 19 -19, 30 -17"/><path d="M0 0 C -9 -14, -19 -19, -30 -17"/><path d="M0 0 C 3 -16, 1 -24, -4 -30"/><path d="M0 0 C 11 4, 21 10, 26 19"/><path d="M0 0 C -11 4, -21 10, -26 19"/></g><circle r="4.5" fill="#7a9a3a"/></g>
+    <g id="car"><rect x="-14" y="-31" width="28" height="62" rx="10" fill="#3d4450"/><rect x="-10" y="-18" width="20" height="15" rx="4" fill="#59626f"/><rect x="-10" y="5" width="20" height="14" rx="4" fill="#59626f"/><rect x="-14" y="-25" width="4" height="10" rx="1.5" fill="#2b3038"/><rect x="10" y="-25" width="4" height="10" rx="1.5" fill="#2b3038"/><rect x="-14" y="13" width="4" height="10" rx="1.5" fill="#2b3038"/><rect x="10" y="13" width="4" height="10" rx="1.5" fill="#2b3038"/></g>
+    <g id="hedgeDot"><circle r="8" fill="#54712c"/><circle cx="-2.5" cy="-2.5" r="3.2" fill="#6c8b3a"/></g>
+    <g id="core"><rect width="50" height="42" fill="#eef0f2" stroke="#fff" stroke-width="3"/></g>
+    <clipPath id="clip"><rect width="2530" height="1170"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#clip)">
+  <rect width="2530" height="1170" fill="#fdfdfb"/>
+  <rect x="530" y="0" width="2000" height="1170" fill="#4a3526"/>
+  <rect x="1850" y="0" width="680" height="348" fill="url(#fieldRows)"/>
+  <rect x="2300" y="348" width="230" height="122" fill="url(#fieldRows)"/>
+  <rect x="2308" y="548" width="222" height="622" fill="url(#lawnTex)"/>
+  <rect x="1858" y="1078" width="672" height="92" fill="url(#lawnTex)"/>
+  <path d="M620 795 H1700 V830 H620 Z" fill="#6b4a2e" opacity=".5"/>
+  <path d="M1500 0 H1548 V340 H1500 Z" fill="#5d3f29"/>
+  <path d="M1815 470 H1860 V1060 H1815 Z" fill="#5d3f29" opacity=".7"/>
+  <!-- ═══ WEST GATE — left wall, 80px opening centred at y=805, aligned with the Block A / Block B road, biased toward Block A ═══ -->
+  <rect x="415" y="765" width="116" height="80" fill="#9aa0a8" stroke="#fff" stroke-width="3"/>
+  <rect x="415" y="765" width="116" height="5" fill="#7d838c"/>
+  <rect x="415" y="840" width="116" height="5" fill="#7d838c"/>
+  <line x1="415" y1="805" x2="531" y2="805" stroke="#f4f4f2" stroke-width="5" stroke-dasharray="24 16"/>
+
+  <!-- ═══ EAST GATE — right wall, 80px opening, y=468–548 ═══ -->
+  <rect x="2338" y="468" width="192" height="80" fill="#9aa0a8" stroke="#fff" stroke-width="3"/>
+  <rect x="2338" y="468" width="192" height="5" fill="#7d838c"/>
+  <rect x="2338" y="543" width="192" height="5" fill="#7d838c"/>
+  <line x1="2352" y1="508" x2="2522" y2="508" stroke="#f4f4f2" stroke-width="5" stroke-dasharray="24 16"/>
+
+  <!-- ═══ MAIN ENTRANCE — south wall, 80px opening centred at x=1786 ═══ -->
+  <rect x="1746" y="1062" width="80" height="108" fill="#9aa0a8" stroke="#fff" stroke-width="3"/>
+  <rect x="1746" y="1062" width="5" height="108" fill="#7d838c"/>
+  <rect x="1821" y="1062" width="5" height="108" fill="#7d838c"/>
+  <line x1="1786" y1="1078" x2="1786" y2="1170" stroke="#f4f4f2" stroke-width="5" stroke-dasharray="24 16"/>
+  <path d="M568 55 Q700 35 830 55 Q960 73 1090 55 Q1220 38 1350 55 Q1430 64 1495 52" fill="none" stroke="#aeb3ba" stroke-width="24" stroke-linecap="round"/>
+  <path d="M568 55 Q700 35 830 55 Q960 73 1090 55 Q1220 38 1350 55 Q1430 64 1495 52" fill="none" stroke="#c2c6cc" stroke-width="14" stroke-linecap="round"/>
+  <path d="M1560 52 Q1650 36 1742 54 Q1800 64 1802 120 L1802 288 Q1802 342 1858 344 L2252 344 Q2296 344 2296 390 L2296 990 Q2296 1040 2240 1042 L1920 1042 Q1878 1042 1878 1008" fill="none" stroke="#aeb3ba" stroke-width="24" stroke-linecap="round"/>
+  <path d="M1560 52 Q1650 36 1742 54 Q1800 64 1802 120 L1802 288 Q1802 342 1858 344 L2252 344 Q2296 344 2296 390 L2296 990 Q2296 1040 2240 1042 L1920 1042 Q1878 1042 1878 1008" fill="none" stroke="#c2c6cc" stroke-width="14" stroke-linecap="round"/>
+  <rect x="560" y="6" width="935" height="20" rx="10" fill="#45612c"/>
+  <rect x="2306" y="560" width="14" height="370" fill="#7a4f63"/>
+  <g fill="#b06a86"><circle cx="2313" cy="585" r="5"/><circle cx="2313" cy="635" r="5"/><circle cx="2313" cy="690" r="5"/><circle cx="2313" cy="745" r="5"/><circle cx="2313" cy="800" r="5"/><circle cx="2313" cy="860" r="5"/><circle cx="2313" cy="912" r="5"/></g>
+  <rect x="528" y="26" width="80" height="200" fill="url(#net)" stroke="#2e6db5" stroke-width="3"/>
+  <rect x="528" y="226" width="80" height="38" fill="#3f7fb5" stroke="#2e6db5" stroke-width="3"/>
+  <line x1="528" y1="126" x2="608" y2="126" stroke="#e8e8e4" stroke-width="2"/>
+  <rect x="1545" y="86" width="200" height="208" fill="#b9bfca" stroke="#fff" stroke-width="4"/>
+  <rect x="1572" y="108" width="148" height="164" fill="url(#lattice)" stroke="#e8ebe6" stroke-width="3"/>
+  <g fill="#3f4854"><circle cx="1612" cy="146" r="10"/><circle cx="1672" cy="142" r="10"/><circle cx="1602" cy="222" r="10"/><circle cx="1680" cy="230" r="10"/><circle cx="1644" cy="186" r="7" fill="#e8e4da"/></g>
+  <rect x="1572" y="96" width="148" height="10" fill="#6f8f33"/>
+  <rect x="1572" y="266" width="148" height="10" fill="#6f8f33"/>
+  <path d="M1572 296 Q1565 352 1612 360 Q1670 368 1685 338 Q1695 314 1670 298 Z" fill="#3c6f86"/>
+  <path d="M1580 304 Q1576 344 1614 351 Q1660 358 1674 334 Q1681 318 1662 306 Z" fill="#4f86a0" opacity=".8"/>
+
+  <!-- BLOCK A -->
+  <rect x="585" y="85" width="433" height="705" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <rect x="1062" y="85" width="430" height="705" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <rect x="1018" y="85" width="44" height="705" fill="#6a9a3c"/>
+  <g fill="#b9b2a4" stroke="#8e8779" stroke-width="1.5"><rect x="1028" y="110" width="24" height="16" rx="3"/><rect x="1028" y="160" width="24" height="16" rx="3"/><rect x="1028" y="210" width="24" height="16" rx="3"/><rect x="1028" y="260" width="24" height="16" rx="3"/><rect x="1028" y="470" width="24" height="16" rx="3"/><rect x="1028" y="520" width="24" height="16" rx="3"/><rect x="1028" y="570" width="24" height="16" rx="3"/><rect x="1028" y="620" width="24" height="16" rx="3"/><rect x="1028" y="670" width="24" height="16" rx="3"/><rect x="1028" y="720" width="24" height="16" rx="3"/></g>
+  <g fill="#3a3f48"><rect x="1026" y="380" width="10" height="14" rx="2"/><rect x="1044" y="382" width="10" height="12" rx="2"/><circle cx="1040" cy="470" r="5"/></g>
+  <g fill="#353b46"><rect x="723" y="92" width="13" height="140"/><rect x="868" y="92" width="13" height="140"/><rect x="592" y="238" width="423" height="12"/><rect x="723" y="300" width="12" height="80"/><rect x="723" y="460" width="12" height="80"/><rect x="592" y="630" width="423" height="12"/><rect x="723" y="648" width="13" height="135"/><rect x="868" y="648" width="13" height="135"/><rect x="935" y="300" width="12" height="80"/><rect x="935" y="460" width="12" height="80"/></g>
+  <g fill="#353b46"><rect x="1200" y="92" width="13" height="140"/><rect x="1345" y="92" width="13" height="140"/><rect x="1066" y="238" width="422" height="12"/><rect x="1200" y="300" width="12" height="80"/><rect x="1200" y="460" width="12" height="80"/><rect x="1066" y="630" width="422" height="12"/><rect x="1200" y="648" width="13" height="135"/><rect x="1345" y="648" width="13" height="135"/><rect x="1413" y="300" width="12" height="80"/><rect x="1413" y="460" width="12" height="80"/></g>
+  <rect x="762" y="262" width="150" height="210" fill="#4e6e34"/>
+  <path d="M775 280 Q820 320 800 380 Q785 430 830 458" fill="none" stroke="#b9b2a4" stroke-width="12"/>
+  <g fill="#8a4a2a"><rect x="780" y="300" width="22" height="9" rx="2"/><rect x="868" y="330" width="22" height="9" rx="2"/><rect x="790" y="420" width="22" height="9" rx="2"/></g>
+  <rect x="768" y="424" width="148" height="182" fill="#2f4d26"/>
+  <rect x="798" y="432" width="90" height="164" fill="#3a6fb0" stroke="#b03a2e" stroke-width="5"/>
+  <g stroke="#fff" stroke-width="2" fill="none"><rect x="808" y="442" width="70" height="144"/><line x1="808" y1="514" x2="878" y2="514"/><line x1="843" y1="442" x2="843" y2="586"/></g>
+  <rect x="1232" y="262" width="155" height="200" fill="#4e6e34"/>
+  <g fill="#2f333b"><rect x="1262" y="288" width="26" height="11" rx="2"/><rect x="1300" y="288" width="26" height="11" rx="2"/><rect x="1338" y="288" width="26" height="11" rx="2"/><rect x="1262" y="312" width="26" height="11" rx="2"/><rect x="1300" y="312" width="26" height="11" rx="2"/><rect x="1338" y="312" width="26" height="11" rx="2"/><rect x="1262" y="336" width="26" height="11" rx="2"/><rect x="1300" y="336" width="26" height="11" rx="2"/><rect x="1338" y="336" width="26" height="11" rx="2"/><rect x="1262" y="360" width="26" height="11" rx="2"/><rect x="1300" y="360" width="26" height="11" rx="2"/><rect x="1338" y="360" width="26" height="11" rx="2"/></g>
+  <rect x="1228" y="468" width="168" height="185" fill="#4e6e34"/>
+  <path d="M1255 510 Q1330 482 1372 528 Q1402 575 1358 612 Q1296 648 1262 605 Q1238 555 1255 510 Z" fill="#c9a36a"/>
+  <line x1="1268" y1="615" x2="1305" y2="630" stroke="#7c5a32" stroke-width="5"/>
+  <use href="#core" x="893" y="225"/><use href="#core" x="745" y="392"/><use href="#core" x="852" y="638"/>
+  <use href="#core" x="1322" y="225"/><use href="#core" x="1222" y="392"/><use href="#core" x="1336" y="638"/>
+
+  <!-- Flat labels Block A -->
+  <text font-size="14" fill="#6e7480" font-weight="500" x="655" y="148" text-anchor="middle">Flat 01</text><text font-size="16" fill="#3c424e" font-weight="700" x="655" y="168" text-anchor="middle">2365<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="800" y="148" text-anchor="middle">Flat 06</text><text font-size="16" fill="#3c424e" font-weight="700" x="800" y="168" text-anchor="middle">2315<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="945" y="148" text-anchor="middle">Flat 08</text><text font-size="16" fill="#3c424e" font-weight="700" x="945" y="168" text-anchor="middle">2315<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="655" y="322" text-anchor="middle">Flat 02</text><text font-size="16" fill="#3c424e" font-weight="700" x="655" y="342" text-anchor="middle">1855<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="965" y="370" text-anchor="middle">Flat 09</text><text font-size="16" fill="#3c424e" font-weight="700" x="965" y="390" text-anchor="middle">1805<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="655" y="432" text-anchor="middle">Flat 03</text><text font-size="16" fill="#3c424e" font-weight="700" x="655" y="452" text-anchor="middle">1855<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="965" y="498" text-anchor="middle">Flat 10</text><text font-size="16" fill="#3c424e" font-weight="700" x="965" y="518" text-anchor="middle">1805<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="655" y="560" text-anchor="middle">Flat 04</text><text font-size="16" fill="#3c424e" font-weight="700" x="655" y="580" text-anchor="middle">1805<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="655" y="700" text-anchor="middle">Flat 05</text><text font-size="16" fill="#3c424e" font-weight="700" x="655" y="720" text-anchor="middle">2000<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="800" y="700" text-anchor="middle">Flat 07</text><text font-size="16" fill="#3c424e" font-weight="700" x="800" y="720" text-anchor="middle">2000<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="945" y="700" text-anchor="middle">Flat 11</text><text font-size="16" fill="#3c424e" font-weight="700" x="945" y="720" text-anchor="middle">2000<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1130" y="148" text-anchor="middle">Flat 12</text><text font-size="16" fill="#3c424e" font-weight="700" x="1130" y="168" text-anchor="middle">2365<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1275" y="148" text-anchor="middle">Flat 17</text><text font-size="16" fill="#3c424e" font-weight="700" x="1275" y="168" text-anchor="middle">2315<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1420" y="148" text-anchor="middle">Flat 19</text><text font-size="16" fill="#3c424e" font-weight="700" x="1420" y="168" text-anchor="middle">2315<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1130" y="322" text-anchor="middle">Flat 13</text><text font-size="16" fill="#3c424e" font-weight="700" x="1130" y="342" text-anchor="middle">1855<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1435" y="370" text-anchor="middle">Flat 20</text><text font-size="16" fill="#3c424e" font-weight="700" x="1435" y="390" text-anchor="middle">1805<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1130" y="432" text-anchor="middle">Flat 14</text><text font-size="16" fill="#3c424e" font-weight="700" x="1130" y="452" text-anchor="middle">1855<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1435" y="498" text-anchor="middle">Flat 21</text><text font-size="16" fill="#3c424e" font-weight="700" x="1435" y="518" text-anchor="middle">1805<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1130" y="560" text-anchor="middle">Flat 15</text><text font-size="16" fill="#3c424e" font-weight="700" x="1130" y="580" text-anchor="middle">1805<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1130" y="700" text-anchor="middle">Flat 16</text><text font-size="16" fill="#3c424e" font-weight="700" x="1130" y="720" text-anchor="middle">2000<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1275" y="700" text-anchor="middle">Flat 18</text><text font-size="16" fill="#3c424e" font-weight="700" x="1275" y="720" text-anchor="middle">2000<tspan font-size="11">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" font-weight="500" x="1420" y="700" text-anchor="middle">Flat 22</text><text font-size="16" fill="#3c424e" font-weight="700" x="1420" y="720" text-anchor="middle">2000<tspan font-size="11">sft</tspan></text>
+
+  <!-- Block A lift indicators -->
+  <g class="lift-marker">
+    <rect x="893" y="225" width="50" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="918" y="242" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="918" y="257" text-anchor="middle" font-size="8" fill="#3a2800">L-A1</text>
+    <rect x="745" y="392" width="50" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="770" y="409" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="770" y="424" text-anchor="middle" font-size="8" fill="#3a2800">L-A2</text>
+    <rect x="852" y="638" width="50" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="877" y="655" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="877" y="670" text-anchor="middle" font-size="8" fill="#3a2800">L-A3</text>
+    <rect x="1322" y="225" width="50" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="1347" y="242" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="1347" y="257" text-anchor="middle" font-size="8" fill="#3a2800">L-A4</text>
+    <rect x="1222" y="392" width="50" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="1247" y="409" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="1247" y="424" text-anchor="middle" font-size="8" fill="#3a2800">L-A5</text>
+    <rect x="1336" y="638" width="50" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="1361" y="655" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="1361" y="670" text-anchor="middle" font-size="8" fill="#3a2800">L-A6</text>
+  </g>
+
+  <!-- Block A label -->
+  <rect x="960" y="400" width="148" height="46" rx="10" fill="#e2502e"/>
+  <text font-size="22" font-weight="800" fill="#fff" x="1034" y="430" text-anchor="middle">Block-A</text>
+
+  <!-- BLOCK B -->
+  <rect x="585" y="832" width="1118" height="262" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <g stroke="#fff" stroke-width="5"><line x1="709.2" y1="832" x2="709.2" y2="1094"/><line x1="833.5" y1="832" x2="833.5" y2="1094"/><line x1="957.7" y1="832" x2="957.7" y2="1094"/><line x1="1082" y1="832" x2="1082" y2="1094"/><line x1="1206.2" y1="832" x2="1206.2" y2="1094"/><line x1="1330.5" y1="832" x2="1330.5" y2="1094"/><line x1="1454.7" y1="832" x2="1454.7" y2="1094"/><line x1="1579" y1="832" x2="1579" y2="1094"/></g>
+  <g fill="#353b46"><rect x="695.8" y="838" width="11.6" height="64"/><rect x="820.2" y="1022" width="11.6" height="64"/><rect x="944.7" y="838" width="11.6" height="64"/><rect x="1068.1" y="1022" width="11.6" height="64"/><rect x="1192.5" y="838" width="11.6" height="64"/><rect x="1317" y="1022" width="11.6" height="64"/><rect x="1441.4" y="838" width="11.6" height="64"/><rect x="1565.9" y="1022" width="11.6" height="64"/><rect x="590.3" y="950" width="1107.5" height="10" opacity=".55"/></g>
+  <use href="#core" x="682.9" y="962"/><use href="#core" x="1055.6" y="962"/><use href="#core" x="1552.6" y="962"/>
+
+  <!-- Block B lift & staircase indicators — embedded in the SOUTH ROW, opening right at the corridor edge (never in the corridor itself) -->
+  <g class="lift-marker">
+    <rect x="682.9" y="962" width="52.7" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="709.2" y="979" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="709.2" y="994" text-anchor="middle" font-size="8" fill="#3a2800">L-B3</text>
+
+    <rect x="807.1" y="962" width="52.7" height="42" fill="#b8d0e0" opacity=".9" rx="5"/>
+    <text x="833.5" y="979" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3050">STAIR</text>
+    <text x="833.5" y="994" text-anchor="middle" font-size="8" fill="#1a3050">ST-B2</text>
+
+    <rect x="1055.6" y="962" width="52.7" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="1082" y="979" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="1082" y="994" text-anchor="middle" font-size="8" fill="#3a2800">L-B2</text>
+
+    <rect x="1428.4" y="962" width="52.7" height="42" fill="#b8d0e0" opacity=".9" rx="5"/>
+    <text x="1454.7" y="979" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3050">STAIR</text>
+    <text x="1454.7" y="994" text-anchor="middle" font-size="8" fill="#1a3050">ST-B1</text>
+
+    <rect x="1552.6" y="962" width="52.7" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="1579" y="979" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="1579" y="994" text-anchor="middle" font-size="8" fill="#3a2800">L-B1</text>
+  </g>
+
+  <!-- Block B flat labels -->
+  <text font-size="13" fill="#6e7480" x="647.2" y="865" text-anchor="middle">Flat 01</text><text font-size="15" fill="#3c424e" font-weight="700" x="647.2" y="883" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="771.7" y="865" text-anchor="middle">Flat 03</text><text font-size="15" fill="#3c424e" font-weight="700" x="771.7" y="883" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="896.1" y="865" text-anchor="middle">Flat 05</text><text font-size="15" fill="#3c424e" font-weight="700" x="896.1" y="883" text-anchor="middle">1200<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1019.5" y="865" text-anchor="middle">Flat 07</text><text font-size="15" fill="#3c424e" font-weight="700" x="1019.5" y="883" text-anchor="middle">1200<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1144" y="865" text-anchor="middle">Flat 09</text><text font-size="15" fill="#3c424e" font-weight="700" x="1144" y="883" text-anchor="middle">1200<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1268.5" y="865" text-anchor="middle">Flat 11</text><text font-size="15" fill="#3c424e" font-weight="700" x="1268.5" y="883" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1392.9" y="865" text-anchor="middle">Flat 13</text><text font-size="15" fill="#3c424e" font-weight="700" x="1392.9" y="883" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1517.4" y="865" text-anchor="middle">Flat 15</text><text font-size="15" fill="#3c424e" font-weight="700" x="1517.4" y="883" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1640.8" y="865" text-anchor="middle">Flat 17</text><text font-size="15" fill="#3c424e" font-weight="700" x="1640.8" y="883" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="647.2" y="1005" text-anchor="middle">Flat 02</text><text font-size="15" fill="#3c424e" font-weight="700" x="647.2" y="1023" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="771.7" y="1005" text-anchor="middle">Flat 04</text><text font-size="15" fill="#3c424e" font-weight="700" x="771.7" y="1023" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="896.1" y="1005" text-anchor="middle">Flat 06</text><text font-size="15" fill="#3c424e" font-weight="700" x="896.1" y="1023" text-anchor="middle">1200<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1019.5" y="1005" text-anchor="middle">Flat 08</text><text font-size="15" fill="#3c424e" font-weight="700" x="1019.5" y="1023" text-anchor="middle">1200<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1144" y="1005" text-anchor="middle">Flat 10</text><text font-size="15" fill="#3c424e" font-weight="700" x="1144" y="1023" text-anchor="middle">1200<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1268.5" y="1005" text-anchor="middle">Flat 12</text><text font-size="15" fill="#3c424e" font-weight="700" x="1268.5" y="1023" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1392.9" y="1005" text-anchor="middle">Flat 14</text><text font-size="15" fill="#3c424e" font-weight="700" x="1392.9" y="1023" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1517.4" y="1005" text-anchor="middle">Flat 16</text><text font-size="15" fill="#3c424e" font-weight="700" x="1517.4" y="1023" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1640.8" y="1005" text-anchor="middle">Flat 18</text><text font-size="15" fill="#3c424e" font-weight="700" x="1640.8" y="1023" text-anchor="middle">1265<tspan font-size="10">sft</tspan></text>
+
+  <!-- Block B label -->
+  <rect x="993.2" y="1050" width="137.1" height="38" rx="10" fill="#e2502e"/>
+  <text font-size="20" font-weight="800" fill="#fff" x="1061.7" y="1075" text-anchor="middle">Block-B</text>
+
+  <!-- BLOCK C -->
+  <rect x="1552" y="358" width="122" height="432" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <rect x="1688" y="355" width="122" height="435" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <!-- connector — visually joins the two towers into one shared-corridor floor, same block outlines/sizes untouched -->
+  <rect x="1674" y="358" width="14" height="432" fill="url(#roofGrid)" stroke="#fff" stroke-width="3"/>
+  <line x1="1681" y1="358" x2="1681" y2="790" stroke="#fff" stroke-width="3"/>
+  <!-- corridor line — centered on Flat 01/02's own tower (y358–790, midpoint=574) so both are exactly level -->
+  <rect x="1552" y="569" width="258" height="10" fill="#353b46" opacity=".55"/>
+  <use href="#core" x="1656" y="579"/>
+  <!-- Block C lift & staircase indicators — ONE shared lift (south row, between Flats 02 & 04) and ONE staircase (west end of corridor, next to Flat 01) — both opening right at the corridor edge -->
+  <g class="lift-marker">
+    <rect x="1656" y="579" width="50" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="1681" y="596" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="1681" y="611" text-anchor="middle" font-size="8" fill="#3a2800">L-C1</text>
+
+    <rect x="1552" y="553" width="50" height="42" fill="#b8d0e0" opacity=".9" rx="5"/>
+    <text x="1577" y="570" text-anchor="middle" font-size="8" font-weight="700" fill="#1a3050">STAIR</text>
+    <text x="1577" y="585" text-anchor="middle" font-size="8" fill="#1a3050">ST-C1</text>
+  </g>
+  <text font-size="14" fill="#6e7480" x="1613" y="395" text-anchor="middle">Flat 01</text><text font-size="15" fill="#3c424e" font-weight="700" x="1613" y="413" text-anchor="middle">2630<tspan font-size="10">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" x="1749" y="395" text-anchor="middle">Flat 03</text><text font-size="15" fill="#3c424e" font-weight="700" x="1749" y="413" text-anchor="middle">2630<tspan font-size="10">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" x="1613" y="670" text-anchor="middle">Flat 02</text><text font-size="15" fill="#3c424e" font-weight="700" x="1613" y="688" text-anchor="middle">2630<tspan font-size="10">sft</tspan></text>
+  <text font-size="14" fill="#6e7480" x="1749" y="670" text-anchor="middle">Flat 04</text><text font-size="15" fill="#3c424e" font-weight="700" x="1749" y="688" text-anchor="middle">2630<tspan font-size="10">sft</tspan></text>
+  <rect x="1590" y="458" width="130" height="38" rx="10" fill="#e2502e"/>
+  <text font-size="20" font-weight="800" fill="#fff" x="1655" y="483" text-anchor="middle">Block-C</text>
+
+  <!-- BLOCK D -->
+  <rect x="1872" y="358" width="112" height="602" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <g fill="#353b46"><rect x="1876" y="455" width="104" height="11"/><rect x="1876" y="580" width="104" height="11"/><rect x="1876" y="705" width="104" height="11"/><rect x="1876" y="822" width="104" height="11"/></g>
+  <rect x="2000" y="352" width="118" height="175" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <rect x="2002" y="822" width="118" height="138" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <rect x="2002" y="530" width="116" height="292" fill="#6a9a3c"/>
+  <g fill="#b9b2a4" stroke="#8e8779" stroke-width="1.5"><rect x="2018" y="552" width="26" height="15" rx="3"/><rect x="2050" y="556" width="26" height="15" rx="3"/><rect x="2030" y="578" width="26" height="15" rx="3"/></g>
+  <path d="M2030 660 Q2080 642 2102 678 Q2118 712 2084 736 Q2042 760 2020 726 Q2005 692 2030 660 Z" fill="#c9a36a"/>
+  <rect x="2128" y="352" width="115" height="110" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <rect x="2130" y="478" width="115" height="155" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <rect x="2132" y="648" width="115" height="145" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <rect x="2134" y="822" width="115" height="138" fill="url(#roofGrid)" stroke="#fff" stroke-width="5"/>
+  <use href="#core" x="2096" y="498"/><use href="#core" x="1984" y="638"/>
+  <g class="lift-marker">
+    <rect x="2096" y="498" width="50" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="2121" y="515" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="2121" y="530" text-anchor="middle" font-size="8" fill="#3a2800">L-D1</text>
+    <rect x="1984" y="638" width="50" height="42" fill="#f0c030" opacity=".85" rx="5"/>
+    <text x="2009" y="655" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2800">LIFT</text>
+    <text x="2009" y="670" text-anchor="middle" font-size="8" fill="#3a2800">L-D2</text>
+  </g>
+  <text font-size="13" fill="#6e7480" x="1928" y="390" text-anchor="middle">Flat 01</text><text font-size="14" fill="#3c424e" font-weight="700" x="1928" y="408" text-anchor="middle">1650<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1928" y="514" text-anchor="middle">Flat 02</text><text font-size="14" fill="#3c424e" font-weight="700" x="1928" y="532" text-anchor="middle">1650<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1928" y="644" text-anchor="middle">Flat 03</text><text font-size="14" fill="#3c424e" font-weight="700" x="1928" y="662" text-anchor="middle">1650<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1928" y="769" text-anchor="middle">Flat 04</text><text font-size="14" fill="#3c424e" font-weight="700" x="1928" y="787" text-anchor="middle">1600<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="1928" y="874" text-anchor="middle">Flat 05</text><text font-size="14" fill="#3c424e" font-weight="700" x="1928" y="892" text-anchor="middle">1650<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="2059" y="390" text-anchor="middle">Flat 06</text><text font-size="14" fill="#3c424e" font-weight="700" x="2059" y="408" text-anchor="middle">1600<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="2059" y="883" text-anchor="middle">Flat 07</text><text font-size="14" fill="#3c424e" font-weight="700" x="2059" y="901" text-anchor="middle">1600<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="2185" y="390" text-anchor="middle">Flat 08</text><text font-size="14" fill="#3c424e" font-weight="700" x="2185" y="408" text-anchor="middle">1600<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="2187" y="557" text-anchor="middle">Flat 09</text><text font-size="14" fill="#3c424e" font-weight="700" x="2187" y="575" text-anchor="middle">1600<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="2189" y="687" text-anchor="middle">Flat 10</text><text font-size="14" fill="#3c424e" font-weight="700" x="2189" y="705" text-anchor="middle">1600<tspan font-size="10">sft</tspan></text>
+  <text font-size="13" fill="#6e7480" x="2191" y="871" text-anchor="middle">Flat 11</text><text font-size="14" fill="#3c424e" font-weight="700" x="2191" y="889" text-anchor="middle">1600<tspan font-size="10">sft</tspan></text>
+  <rect x="2028" y="612" width="130" height="38" rx="10" fill="#e2502e"/>
+  <text font-size="20" font-weight="800" fill="#fff" x="2093" y="637" text-anchor="middle">Block-D</text>
+
+  <!-- ENTRANCE GATE -->
+  <g fill="#e8e8e4"><rect x="1722" y="990" width="9" height="30"/><rect x="1740" y="990" width="9" height="30"/><rect x="1758" y="990" width="9" height="30"/><rect x="1776" y="990" width="9" height="30"/><rect x="1794" y="990" width="9" height="30"/><rect x="1812" y="990" width="9" height="30"/><rect x="1830" y="990" width="9" height="30"/></g>
+  <rect x="1714" y="1026" width="62" height="36" fill="#aeb3bd" stroke="#fff" stroke-width="2"/>
+  <rect x="1788" y="1026" width="62" height="36" fill="#aeb3bd" stroke="#fff" stroke-width="2"/>
+  <rect x="1704" y="1020" width="14" height="48" fill="#8d93a0"/>
+  <rect x="1774" y="1020" width="14" height="48" fill="#8d93a0"/>
+  <rect x="1846" y="1020" width="14" height="48" fill="#8d93a0"/>
+  <!-- Entrance label -->
+  <rect x="1698" y="1070" width="168" height="26" rx="6" fill="#e2502e" opacity=".9"/>
+  <text font-size="13" font-weight="700" fill="#fff" x="1782" y="1088" text-anchor="middle">MAIN ENTRANCE</text>
+
+  <!-- CARS / TREES -->
+  <use href="#car" transform="translate(1728,840) rotate(90)"/>
+  <use href="#car" transform="translate(1822,908) rotate(14)"/>
+  <use href="#car" transform="translate(1788,1135)"/>
+  <use href="#tree" x="610" y="18"/><use href="#treeSmall" x="700" y="14"/><use href="#tree" x="800" y="18"/><use href="#treeSmall" x="905" y="14"/><use href="#tree" x="1010" y="18"/><use href="#treeSmall" x="1115" y="14"/><use href="#tree" x="1220" y="18"/><use href="#treeSmall" x="1325" y="14"/><use href="#tree" x="1430" y="18"/>
+  <use href="#treeSmall" x="565" y="300"/><use href="#tree" x="562" y="380"/><use href="#treeSmall" x="565" y="455"/><use href="#tree" x="562" y="540"/><use href="#treeSmall" x="565" y="620"/><use href="#tree" x="562" y="700"/><use href="#treeSmall" x="565" y="770"/>
+  <use href="#tree" x="1772" y="86"/><use href="#treeSmall" x="1790" y="170"/><use href="#tree" x="1530" y="312"/>
+  <use href="#treeSmall" x="1900" y="312"/><use href="#tree" x="1990" y="316"/><use href="#treeSmall" x="2085" y="312"/><use href="#tree" x="2180" y="316"/><use href="#treeSmall" x="2262" y="320"/>
+  <use href="#tree" x="2330" y="600"/><use href="#treeSmall" x="2338" y="720"/><use href="#tree" x="2332" y="850"/>
+  <use href="#palm" transform="translate(1878,1008)"/>
+  <use href="#tree" x="1900" y="1115"/><use href="#treeSmall" x="2010" y="1130"/><use href="#tree" x="2180" y="1120"/><use href="#treeSmall" x="2330" y="1135"/><use href="#tree" x="2460" y="1118"/>
+  <use href="#treeDark" x="1905" y="58"/><use href="#treeDark" x="2060" y="120"/><use href="#treeDark" x="2300" y="78"/><use href="#treeDark" x="2452" y="160"/><use href="#treeDark" x="2160" y="262"/><use href="#treeDark" x="2410" y="300"/>
+  <use href="#hedgeDot" x="1950" y="335"/><use href="#hedgeDot" x="2030" y="338"/><use href="#hedgeDot" x="2110" y="335"/><use href="#hedgeDot" x="2190" y="338"/>
+
+
+  <!-- AMENITY ZONES (interactive) -->
+  <rect class="amenity-zone" id="az-clubhouse" data-a="clubhouse" x="1545" y="86" width="200" height="208" rx="4" onclick="selectAmenity('clubhouse')"/>
+  <ellipse class="amenity-zone" id="az-pool" data-a="pool" cx="1630" cy="335" rx="65" ry="50" onclick="selectAmenity('pool')"/>
+  <rect class="amenity-zone" id="az-badminton" data-a="badminton" x="768" y="424" width="148" height="182" rx="4" onclick="selectAmenity('badminton')"/>
+  <rect class="amenity-zone" id="az-yoga" data-a="yoga" x="1232" y="262" width="155" height="200" rx="4" onclick="selectAmenity('yoga')"/>
+  <rect class="amenity-zone" id="az-kidsplay" data-a="kidsplay" x="1228" y="468" width="168" height="185" rx="4" onclick="selectAmenity('kidsplay')"/>
+  <rect class="amenity-zone" id="az-boxing" data-a="boxing" x="528" y="26" width="80" height="238" rx="4" onclick="selectAmenity('boxing')"/>
+  <rect class="amenity-zone" id="az-opengym" data-a="opengym" x="1018" y="85" width="44" height="705" rx="4" onclick="selectAmenity('opengym')"/>
+
+  <!-- BLOCK CLICKABLE ZONES (on top of flats) -->
+  <rect class="block-zone" id="bz-A" x="585" y="85" width="906" height="705" rx="6" onclick="selectBlock('A')"/>
+  <rect class="block-zone" id="bz-B" x="585" y="832" width="1118" height="262" rx="6" onclick="selectBlock('B')"/>
+  <rect class="block-zone" id="bz-C" x="1552" y="355" width="258" height="435" rx="6" onclick="selectBlock('C')"/>
+  <rect class="block-zone" id="bz-D" x="1872" y="352" width="382" height="592" rx="6" onclick="selectBlock('D')"/>
+
+  <!-- FLAT CLICKABLE ZONES (on top of block zones — clicking a flat points the dest pin at that exact flat) -->
+  <g>
+    <!-- Block A -->
+    <rect class="flat-zone" id="fz-A01" x="595" y="130" width="120" height="56" onclick="selectFlatZone('A','01')"/>
+    <rect class="flat-zone" id="fz-A02" x="595" y="304" width="120" height="56" onclick="selectFlatZone('A','02')"/>
+    <rect class="flat-zone" id="fz-A03" x="595" y="414" width="120" height="56" onclick="selectFlatZone('A','03')"/>
+    <rect class="flat-zone" id="fz-A04" x="595" y="542" width="120" height="56" onclick="selectFlatZone('A','04')"/>
+    <rect class="flat-zone" id="fz-A05" x="595" y="682" width="120" height="56" onclick="selectFlatZone('A','05')"/>
+    <rect class="flat-zone" id="fz-A06" x="740" y="130" width="120" height="56" onclick="selectFlatZone('A','06')"/>
+    <rect class="flat-zone" id="fz-A07" x="740" y="682" width="120" height="56" onclick="selectFlatZone('A','07')"/>
+    <rect class="flat-zone" id="fz-A08" x="885" y="130" width="120" height="56" onclick="selectFlatZone('A','08')"/>
+    <rect class="flat-zone" id="fz-A09" x="905" y="352" width="120" height="56" onclick="selectFlatZone('A','09')"/>
+    <rect class="flat-zone" id="fz-A10" x="905" y="480" width="120" height="56" onclick="selectFlatZone('A','10')"/>
+    <rect class="flat-zone" id="fz-A11" x="885" y="682" width="120" height="56" onclick="selectFlatZone('A','11')"/>
+    <rect class="flat-zone" id="fz-A12" x="1070" y="130" width="120" height="56" onclick="selectFlatZone('A','12')"/>
+    <rect class="flat-zone" id="fz-A13" x="1070" y="304" width="120" height="56" onclick="selectFlatZone('A','13')"/>
+    <rect class="flat-zone" id="fz-A14" x="1070" y="414" width="120" height="56" onclick="selectFlatZone('A','14')"/>
+    <rect class="flat-zone" id="fz-A15" x="1070" y="542" width="120" height="56" onclick="selectFlatZone('A','15')"/>
+    <rect class="flat-zone" id="fz-A16" x="1070" y="682" width="120" height="56" onclick="selectFlatZone('A','16')"/>
+    <rect class="flat-zone" id="fz-A17" x="1215" y="130" width="120" height="56" onclick="selectFlatZone('A','17')"/>
+    <rect class="flat-zone" id="fz-A18" x="1215" y="682" width="120" height="56" onclick="selectFlatZone('A','18')"/>
+    <rect class="flat-zone" id="fz-A19" x="1360" y="130" width="120" height="56" onclick="selectFlatZone('A','19')"/>
+    <rect class="flat-zone" id="fz-A20" x="1375" y="352" width="120" height="56" onclick="selectFlatZone('A','20')"/>
+    <rect class="flat-zone" id="fz-A21" x="1375" y="480" width="120" height="56" onclick="selectFlatZone('A','21')"/>
+    <rect class="flat-zone" id="fz-A22" x="1360" y="682" width="120" height="56" onclick="selectFlatZone('A','22')"/>
+
+    <!-- Block B -->
+    <rect class="flat-zone" id="fz-B01" x="594.5" y="848" width="105.5" height="52" onclick="selectFlatZone('B','01')"/>
+    <rect class="flat-zone" id="fz-B02" x="594.5" y="988" width="105.5" height="52" onclick="selectFlatZone('B','02')"/>
+    <rect class="flat-zone" id="fz-B03" x="718.9" y="848" width="105.5" height="52" onclick="selectFlatZone('B','03')"/>
+    <rect class="flat-zone" id="fz-B04" x="718.9" y="988" width="105.5" height="52" onclick="selectFlatZone('B','04')"/>
+    <rect class="flat-zone" id="fz-B05" x="843.4" y="848" width="105.5" height="52" onclick="selectFlatZone('B','05')"/>
+    <rect class="flat-zone" id="fz-B06" x="843.4" y="988" width="105.5" height="52" onclick="selectFlatZone('B','06')"/>
+    <rect class="flat-zone" id="fz-B07" x="966.8" y="848" width="105.5" height="52" onclick="selectFlatZone('B','07')"/>
+    <rect class="flat-zone" id="fz-B08" x="966.8" y="988" width="105.5" height="52" onclick="selectFlatZone('B','08')"/>
+    <rect class="flat-zone" id="fz-B09" x="1091.3" y="848" width="105.5" height="52" onclick="selectFlatZone('B','09')"/>
+    <rect class="flat-zone" id="fz-B10" x="1091.3" y="988" width="105.5" height="52" onclick="selectFlatZone('B','10')"/>
+    <rect class="flat-zone" id="fz-B11" x="1215.7" y="848" width="105.5" height="52" onclick="selectFlatZone('B','11')"/>
+    <rect class="flat-zone" id="fz-B12" x="1215.7" y="988" width="105.5" height="52" onclick="selectFlatZone('B','12')"/>
+    <rect class="flat-zone" id="fz-B13" x="1340.2" y="848" width="105.5" height="52" onclick="selectFlatZone('B','13')"/>
+    <rect class="flat-zone" id="fz-B14" x="1340.2" y="988" width="105.5" height="52" onclick="selectFlatZone('B','14')"/>
+    <rect class="flat-zone" id="fz-B15" x="1464.6" y="848" width="105.5" height="52" onclick="selectFlatZone('B','15')"/>
+    <rect class="flat-zone" id="fz-B16" x="1464.6" y="988" width="105.5" height="52" onclick="selectFlatZone('B','16')"/>
+    <rect class="flat-zone" id="fz-B17" x="1588" y="848" width="105.5" height="52" onclick="selectFlatZone('B','17')"/>
+    <rect class="flat-zone" id="fz-B18" x="1588" y="988" width="105.5" height="52" onclick="selectFlatZone('B','18')"/>
+
+    <!-- Block C -->
+    <rect class="flat-zone" id="fz-C01" x="1558" y="329" width="110" height="150" onclick="selectFlatZone('C','01')"/>
+    <rect class="flat-zone" id="fz-C02" x="1558" y="604" width="110" height="150" onclick="selectFlatZone('C','02')"/>
+    <rect class="flat-zone" id="fz-C03" x="1694" y="329" width="110" height="150" onclick="selectFlatZone('C','03')"/>
+    <rect class="flat-zone" id="fz-C04" x="1694" y="604" width="110" height="150" onclick="selectFlatZone('C','04')"/>
+
+    <!-- Block D -->
+    <rect class="flat-zone" id="fz-D01" x="1878" y="354" width="100" height="90" onclick="selectFlatZone('D','01')"/>
+    <rect class="flat-zone" id="fz-D02" x="1878" y="478" width="100" height="90" onclick="selectFlatZone('D','02')"/>
+    <rect class="flat-zone" id="fz-D03" x="1878" y="608" width="100" height="90" onclick="selectFlatZone('D','03')"/>
+    <rect class="flat-zone" id="fz-D04" x="1878" y="733" width="100" height="90" onclick="selectFlatZone('D','04')"/>
+    <rect class="flat-zone" id="fz-D05" x="1878" y="832" width="100" height="90" onclick="selectFlatZone('D','05')"/>
+    <rect class="flat-zone" id="fz-D06" x="2009" y="354" width="100" height="90" onclick="selectFlatZone('D','06')"/>
+    <rect class="flat-zone" id="fz-D07" x="2009" y="832" width="100" height="90" onclick="selectFlatZone('D','07')"/>
+    <rect class="flat-zone" id="fz-D08" x="2135" y="354" width="100" height="90" onclick="selectFlatZone('D','08')"/>
+    <rect class="flat-zone" id="fz-D09" x="2137" y="521" width="100" height="90" onclick="selectFlatZone('D','09')"/>
+    <rect class="flat-zone" id="fz-D10" x="2139" y="651" width="100" height="90" onclick="selectFlatZone('D','10')"/>
+    <rect class="flat-zone" id="fz-D11" x="2141" y="832" width="100" height="90" onclick="selectFlatZone('D','11')"/>
+  </g>
+
+  <!-- INNER ROAD — vehicle-accessible path network (static guide, not the animated nav route). Self-contained component: delete this whole <g id="inner-roads"> block to remove it.
+       White = open road (never crosses a building wall). Brown = inside a block's covered/cellar footprint once the road crosses that block's wall. -->
+  <g id="inner-roads" pointer-events="none">
+    <path d="M1786,1120 L1786,805 M568,1120 L1786,1120 M1144,1120 L1144,1094 M531,805 L1850,805 M843,805 L843,794 M1311,805 L1311,794 M1655,805 L1655,794 M1850,805 L1850,650 M1850,650 L1872,650 M1524,805 L1524,8 M555,1120 L555,832 M555,805 L555,832"
+          fill="none" stroke="#f4f4f2" stroke-width="5" stroke-dasharray="20 14" stroke-linecap="round" opacity=".85"/>
+    <path d="M1144,1094 L1144,963 M843,794 L843,514 M1311,794 L1311,362 M1655,794 L1655,580 M1751,200 L1645,200 M1872,650 L1928,650"
+          fill="none" stroke="#c1793f" stroke-width="5" stroke-dasharray="20 14" stroke-linecap="round" opacity=".85"/>
+  </g>
+
+  <!-- ROUTE PATH -->
+  <path id="route-path" d=""/>
+
+  <!-- START PIN -->
+  <g id="start-pin" opacity="0" pointer-events="none">
+    <circle cx="1786" cy="1090" r="18" class="pin-s"/>
+    <text x="1786" y="1096" text-anchor="middle" font-size="14" font-weight="900" fill="#fff">S</text>
+  </g>
+  <!-- DEST PIN — teardrop map-pin marker, positioned via transform (see moveDestPin) -->
+  <g id="dest-pin" opacity="0" pointer-events="none">
+    <ellipse cx="0" cy="30" rx="10" ry="3.5" fill="#0f111a" opacity=".25"/>
+    <path d="M0,-30 C-13,-30 -23,-20.2 -23,-8.5 C-23,7.5 0,30 0,30 C0,30 23,7.5 23,-8.5 C23,-20.2 13,-30 0,-30 Z" fill="#2f9bd6" stroke="#fff" stroke-width="2.5"/>
+    <circle cx="0" cy="-8.5" r="8.5" fill="#fff"/>
+    <circle cx="0" cy="-8.5" r="4" fill="#2f9bd6"/>
+  </g>
+
+  <!-- PVR Logo top-right -->
+  <g transform="translate(2350,75)">
+    <text font-size="22" letter-spacing="5" fill="#f3eee2" font-weight="600" x="0" y="0" text-anchor="middle">PVR</text>
+    <text font-family="Georgia,serif" font-style="italic" font-weight="700" fill="#f3eee2" x="8" y="56" font-size="60" text-anchor="middle">Elite</text>
+    <text font-size="9" letter-spacing="2" fill="#e8e2d2" x="28" y="76" text-anchor="middle">A New Wave of Living</text>
+  </g>
+
+  </g><!-- end clip-path group -->
+
+  <!-- ═══ NORTH ENTRANCE — top wall, 80px opening centred at x=1524 ═══ -->
+  <rect x="1484" y="-65" width="80" height="73" fill="#9aa0a8" stroke="#fff" stroke-width="3"/>
+  <rect x="1484" y="-65" width="5" height="73" fill="#7d838c"/>
+  <rect x="1559" y="-65" width="5" height="73" fill="#7d838c"/>
+  <line x1="1524" y1="-65" x2="1524" y2="8" stroke="#f4f4f2" stroke-width="5" stroke-dasharray="24 16"/>
+
+  <!-- ═══ GATE LABELS (outside clip, appear in padding area) ═══ -->
+  <g font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="700" text-anchor="middle">
+
+    <!-- East Main Entrance — south bottom -->
+    <g transform="translate(1786,1193)">
+      <rect x="-92" y="-16" width="184" height="22" rx="11" fill="#e2502e" opacity=".92"/>
+      <text fill="#fff" y="-1" letter-spacing=".3">🚪 MAIN ENTRANCE</text>
+    </g>
+
+    <!-- West Gate — sits just below the gate structure, centred on it (mirrors the North Entrance label-above-gate pattern) -->
+    <g transform="translate(473,874)">
+      <rect x="-58" y="-16" width="116" height="22" rx="11" fill="#2e4a7a" opacity=".9"/>
+      <text fill="#fff" y="-1">🚪 WEST GATE</text>
+    </g>
+
+    <!-- North Gate — right side at x≈2434 y≈508 -->
+    <g transform="translate(2434,453)">
+      <rect x="-62" y="-16" width="124" height="22" rx="11" fill="#2e4a7a" opacity=".9"/>
+      <text fill="#fff" y="-1">🚪 NORTH GATE</text>
+    </g>
+
+    <!-- North Entrance — sits just above the road rect -->
+    <g transform="translate(1524,-70)">
+      <rect x="-74" y="-16" width="148" height="22" rx="11" fill="#2e4a7a" opacity=".9"/>
+      <text fill="#fff" y="-1">🚪 NORTH ENTRANCE</text>
+    </g>
+
+  </g>
+</svg>
+</div><!-- end map-wrap -->
+
+<!-- RIGHT SIDEBAR -->
+<div id="sidebar">
+  <div id="sidebar-controls">
+    <!-- Amenities -->
+    <div class="sb-section">
+      <div class="sb-label">Amenities</div>
+      <div class="amenity-icons-row">
+        <div class="leg-icon" data-tip="Clubhouse" onclick="selectAmenity('clubhouse')">🏛️</div>
+        <div class="leg-icon" data-tip="Swimming Pool" onclick="selectAmenity('pool')">🏊</div>
+        <div class="leg-icon" data-tip="Badminton Court" onclick="selectAmenity('badminton')">🏸</div>
+        <div class="leg-icon" data-tip="Yoga Zone" onclick="selectAmenity('yoga')">🧘</div>
+        <div class="leg-icon" data-tip="Kids Play Area" onclick="selectAmenity('kidsplay')">🎪</div>
+        <div class="leg-icon" data-tip="Box Cricket" onclick="selectAmenity('boxing')">🏏</div>
+        <div class="leg-icon" data-tip="Open Gym" onclick="selectAmenity('opengym')">🏋️</div>
+      </div>
+    </div>
+    <!-- Block selector -->
+    <div class="sb-section">
+      <div class="sb-label">Navigate to Block</div>
+      <div class="block-btns-row">
+        <span class="blk-label">Block</span>
+        <button class="blk-btn" id="bb-A" onclick="selectBlock('A')">A</button>
+        <button class="blk-btn" id="bb-B" onclick="selectBlock('B')">B</button>
+        <button class="blk-btn" id="bb-C" onclick="selectBlock('C')">C</button>
+        <button class="blk-btn" id="bb-D" onclick="selectBlock('D')">D</button>
+      </div>
+    </div>
+    <!-- Flat code search (shown after block selected) -->
+    <div id="search-row" class="sb-section hidden">
+      <div class="sb-label">Enter Flat Code</div>
+      <div class="flat-search-wrap">
+        <input type="text" id="flat-search" class="flat-search-input"
+               maxlength="3" inputmode="numeric" pattern="[0-9]*"
+               placeholder="209"
+               oninput="handleSearch(this.value)">
+        <div id="search-error" class="search-error"></div>
+        <span class="search-hint" id="search-hint">Floor 1–5 · e.g. 209 = Floor 2, Flat 09</span>
+      </div>
+    </div>
+  </div>
+  <!-- Navigation directions (shown after selection) -->
+  <div id="nav-panel" class="hidden">
+    <div id="panel-head">
+      <span id="panel-head-title">Navigate</span>
+      <button id="panel-close" onclick="closePanel()">✕</button>
+    </div>
+    <div id="panel-body"></div>
+  </div>
+
+  <!-- Sidebar footer — share buttons -->
+  <div id="sidebar-footer">
+    <button id="btn-share-link" class="share-btn" disabled onclick="shareFlatLink()" title="Copy link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <span>Share</span>
+    </button>
+    <button id="btn-share-wa" class="share-btn share-wa" disabled onclick="shareWhatsApp()" title="Share on WhatsApp">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+      <span>WhatsApp</span>
+    </button>
+  </div>
+</div>
+
+</div><!-- end layout -->
+
+<div id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const BLOCK_META = {
+  A:{ name:'Block A', flats:22, type:'3 & 4 BHK', floors:5,
+      route:'M1786,1090 L1786,800 L1038,800 L1038,440',
+      dest:[1038,440] },
+  B:{ name:'Block B', flats:18, type:'2 BHK', floors:5,
+      route:'M1786,1090 L1144,1090 L1144,963',
+      dest:[1144,963] },
+  C:{ name:'Block C', flats:4, type:'4 BHK', floors:5,
+      route:'M1786,1090 L1786,800 L1655,800 L1655,580',
+      dest:[1655,580] },
+  D:{ name:'Block D', flats:11, type:'3 BHK', floors:5,
+      route:'M1786,1090 L1786,800 L1928,800 L1928,650',
+      dest:[1928,650] }
+};
+
+// Each flat: sz=size, lift=lift id, liftName, wing, afterLift directions
+const FLAT_INFO = {
+  // ── BLOCK A ──
+  A01:{sz:2365,type:'4BHK',lift:'L-A1',liftName:'North-West Lift (L-A1)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby on the left side of the building',
+       liftDir:'Walk north along the cellar corridor. L-A1 is at the NORTH END on your LEFT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 01 is the CORNER flat at the north-west end.'},
+  A02:{sz:1855,type:'3BHK',lift:'L-A2',liftName:'Central-West Lift (L-A2)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby',
+       liftDir:'Walk along the corridor. L-A2 is the MIDDLE lift on the LEFT side.',
+       afterLift:'Exit lift, turn LEFT. Flat 02 is the FIRST door on your left.'},
+  A03:{sz:1855,type:'3BHK',lift:'L-A2',liftName:'Central-West Lift (L-A2)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby',
+       liftDir:'Walk along the corridor. L-A2 is the MIDDLE lift on the LEFT side.',
+       afterLift:'Exit lift, turn LEFT. Flat 03 is the SECOND door on your left.'},
+  A04:{sz:1805,type:'3BHK',lift:'L-A2',liftName:'Central-West Lift (L-A2)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby',
+       liftDir:'Walk along the corridor. L-A2 is the MIDDLE lift on the LEFT side.',
+       afterLift:'Exit lift, turn LEFT. Flat 04 is the THIRD door on your left.'},
+  A05:{sz:2000,type:'3BHK',lift:'L-A3',liftName:'South-West Lift (L-A3)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby',
+       liftDir:'Walk south along corridor. L-A3 is at the SOUTH END on your RIGHT.',
+       afterLift:'Exit lift, turn LEFT. Flat 05 is the CORNER flat at the south-west end.'},
+  A06:{sz:2315,type:'4BHK',lift:'L-A1',liftName:'North-West Lift (L-A1)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby',
+       liftDir:'Walk north along the cellar corridor. L-A1 is at the NORTH END on your LEFT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 06 is the SECOND door — middle-north position.'},
+  A07:{sz:2000,type:'3BHK',lift:'L-A3',liftName:'South-West Lift (L-A3)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby',
+       liftDir:'Walk south along corridor. L-A3 is at the SOUTH END on your RIGHT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 07 is the MIDDLE-SOUTH flat.'},
+  A08:{sz:2315,type:'4BHK',lift:'L-A1',liftName:'North-West Lift (L-A1)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby',
+       liftDir:'Walk north along the cellar corridor. L-A1 is at the NORTH END on your LEFT.',
+       afterLift:'Exit lift, straight ahead. Flat 08 is the NORTH-EAST corner of west wing.'},
+  A09:{sz:1805,type:'3BHK',lift:'L-A3',liftName:'South-West Lift (L-A3)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby',
+       liftDir:'Walk south along corridor. L-A3 is at the SOUTH END on your RIGHT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 09 is the first door on the RIGHT (outer column).'},
+  A10:{sz:1805,type:'3BHK',lift:'L-A3',liftName:'South-West Lift (L-A3)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby',
+       liftDir:'Walk south along corridor. L-A3 is at the SOUTH END on your RIGHT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 10 is the SECOND door (outer column, middle).'},
+  A11:{sz:2000,type:'3BHK',lift:'L-A3',liftName:'South-West Lift (L-A3)',wing:'West',
+       wingEntry:'Enter Block A WEST WING — main lobby',
+       liftDir:'Walk south along corridor. L-A3 is at the SOUTH END on your RIGHT.',
+       afterLift:'Exit lift, straight ahead — Flat 11 is the south-east corner of west wing.'},
+  A12:{sz:2365,type:'4BHK',lift:'L-A4',liftName:'North-East Lift (L-A4)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby on the right side of the building',
+       liftDir:'Walk north along the cellar corridor. L-A4 is at the NORTH END on your RIGHT.',
+       afterLift:'Exit lift, turn LEFT. Flat 12 is the CORNER flat at the north-west end of east wing.'},
+  A13:{sz:1855,type:'3BHK',lift:'L-A5',liftName:'Central-East Lift (L-A5)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby',
+       liftDir:'Walk along the corridor. L-A5 is the CENTRAL lift on your LEFT.',
+       afterLift:'Exit lift, turn LEFT. Flat 13 is the FIRST door on your left.'},
+  A14:{sz:1855,type:'3BHK',lift:'L-A5',liftName:'Central-East Lift (L-A5)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby',
+       liftDir:'Walk along the corridor. L-A5 is the CENTRAL lift on your LEFT.',
+       afterLift:'Exit lift, turn LEFT. Flat 14 is the SECOND door on your left.'},
+  A15:{sz:1805,type:'3BHK',lift:'L-A5',liftName:'Central-East Lift (L-A5)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby',
+       liftDir:'Walk along the corridor. L-A5 is the CENTRAL lift on your LEFT.',
+       afterLift:'Exit lift, turn LEFT. Flat 15 is the THIRD door on your left.'},
+  A16:{sz:2000,type:'3BHK',lift:'L-A6',liftName:'South-East Lift (L-A6)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby',
+       liftDir:'Walk south. L-A6 is at the SOUTH END on your RIGHT.',
+       afterLift:'Exit lift, turn LEFT. Flat 16 is the south-west corner of east wing.'},
+  A17:{sz:2315,type:'4BHK',lift:'L-A4',liftName:'North-East Lift (L-A4)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby',
+       liftDir:'Walk north. L-A4 is at the NORTH END on your RIGHT.',
+       afterLift:'Exit lift, straight ahead. Flat 17 is middle-north of east wing.'},
+  A18:{sz:2000,type:'3BHK',lift:'L-A6',liftName:'South-East Lift (L-A6)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby',
+       liftDir:'Walk south. L-A6 is at the SOUTH END on your RIGHT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 18 is the middle-south of east wing.'},
+  A19:{sz:2315,type:'4BHK',lift:'L-A4',liftName:'North-East Lift (L-A4)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby',
+       liftDir:'Walk north. L-A4 is at the NORTH END on your RIGHT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 19 is the north-east corner of east wing.'},
+  A20:{sz:1805,type:'3BHK',lift:'L-A6',liftName:'South-East Lift (L-A6)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby',
+       liftDir:'Walk south. L-A6 is at the SOUTH END on your RIGHT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 20 is first door on the RIGHT (outer column).'},
+  A21:{sz:1805,type:'3BHK',lift:'L-A6',liftName:'South-East Lift (L-A6)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby',
+       liftDir:'Walk south. L-A6 is at the SOUTH END on your RIGHT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 21 is the SECOND door (outer column, middle).'},
+  A22:{sz:2000,type:'3BHK',lift:'L-A6',liftName:'South-East Lift (L-A6)',wing:'East',
+       wingEntry:'Enter Block A EAST WING — main lobby',
+       liftDir:'Walk south. L-A6 is at the SOUTH END on your RIGHT.',
+       afterLift:'Exit lift, straight ahead. Flat 22 is the south-east corner of east wing.'},
+
+  // ── BLOCK B ──
+  // Block B has 3 lifts (not 4) and 2 staircases, all embedded IN the south row
+  // (between two flats, never in the corridor). No flat door is ever directly in
+  // front of a lift/staircase exit — a LEFT/RIGHT turn is always required.
+  //   Lift L-B3 (west)   — between Flat 02 and Flat 04
+  //   Staircase ST-B2    — between Flat 04 and Flat 06
+  //   Lift L-B2 (centre) — between Flat 08 and Flat 10
+  //   Staircase ST-B1    — between Flat 14 and Flat 16
+  //   Lift L-B1 (east)   — between Flat 16 and Flat 18
+  B01:{sz:1265,type:'2BHK',lift:'L-B3',stair:'ST-B2',liftName:'West Lift (L-B3)',
+       entry:'Enter Block B at the WEST entrance (west end)',
+       liftDir:'Walk to the lift lobby — L-B3 is embedded in the south row, between Flats 02 and 04.',
+       afterLift:'Exit lift, cross the corridor, then turn LEFT. Flat 01 is the first door on your RIGHT hand side (north row, west end).'},
+  B02:{sz:1265,type:'2BHK',lift:'L-B3',stair:'ST-B2',liftName:'West Lift (L-B3)',
+       entry:'Enter Block B at the WEST entrance (west end)',
+       liftDir:'Walk to the lift lobby — L-B3 is embedded in the south row, between Flats 02 and 04.',
+       afterLift:'Exit lift, turn LEFT. Flat 02 is the first door — same row, no corridor crossing needed.'},
+  B03:{sz:1265,type:'2BHK',lift:'L-B3',stair:'ST-B2',liftName:'West Lift (L-B3)',
+       entry:'Enter Block B at the WEST entrance (west end)',
+       liftDir:'Walk to the lift lobby — L-B3 is embedded in the south row, between Flats 02 and 04.',
+       afterLift:'Exit lift, cross the corridor, then turn RIGHT. Flat 03 is the first door on your LEFT hand side (north row).'},
+  B04:{sz:1265,type:'2BHK',lift:'L-B3',stair:'ST-B2',liftName:'West Lift (L-B3)',
+       entry:'Enter Block B at the WEST entrance (west end)',
+       liftDir:'Walk to the lift lobby — L-B3 is embedded in the south row, between Flats 02 and 04.',
+       afterLift:'Exit lift, turn RIGHT. Flat 04 is the first door — same row, no corridor crossing needed.'},
+  B05:{sz:1200,type:'2BHK',lift:'L-B2',stair:'ST-B2',liftName:'Centre Lift (L-B2)',
+       entry:'Enter Block B at the CENTRE entrance',
+       liftDir:'Walk to the lift lobby — L-B2 is embedded in the south row, between Flats 08 and 10.',
+       afterLift:'Exit lift, cross the corridor, then turn LEFT. Walk past the Flat 07 doorway — Flat 05 is the second door on your RIGHT hand side (north row).'},
+  B06:{sz:1200,type:'2BHK',lift:'L-B2',stair:'ST-B2',liftName:'Centre Lift (L-B2)',
+       entry:'Enter Block B at the CENTRE entrance',
+       liftDir:'Walk to the lift lobby — L-B2 is embedded in the south row, between Flats 08 and 10.',
+       afterLift:'Exit lift, turn LEFT. Walk past Flat 08 — Flat 06 is the second door, same row.'},
+  B07:{sz:1200,type:'2BHK',lift:'L-B2',stair:'ST-B2',liftName:'Centre Lift (L-B2)',
+       entry:'Enter Block B at the CENTRE entrance',
+       liftDir:'Walk to the lift lobby — L-B2 is embedded in the south row, between Flats 08 and 10.',
+       afterLift:'Exit lift, cross the corridor, then turn LEFT. Flat 07 is the first door on your RIGHT hand side (north row).'},
+  B08:{sz:1200,type:'2BHK',lift:'L-B2',stair:'ST-B2',liftName:'Centre Lift (L-B2)',
+       entry:'Enter Block B at the CENTRE entrance',
+       liftDir:'Walk to the lift lobby — L-B2 is embedded in the south row, between Flats 08 and 10.',
+       afterLift:'Exit lift, turn LEFT. Flat 08 is the first door — same row, no corridor crossing needed.'},
+  B09:{sz:1200,type:'2BHK',lift:'L-B2',stair:'ST-B2',liftName:'Centre Lift (L-B2)',
+       entry:'Enter Block B at the CENTRE entrance',
+       liftDir:'Walk to the lift lobby — L-B2 is embedded in the south row, between Flats 08 and 10.',
+       afterLift:'Exit lift, cross the corridor, then turn RIGHT. Flat 09 is the first door on your LEFT hand side (north row).'},
+  B10:{sz:1200,type:'2BHK',lift:'L-B2',stair:'ST-B2',liftName:'Centre Lift (L-B2)',
+       entry:'Enter Block B at the CENTRE entrance',
+       liftDir:'Walk to the lift lobby — L-B2 is embedded in the south row, between Flats 08 and 10.',
+       afterLift:'Exit lift, turn RIGHT. Flat 10 is the first door — same row, no corridor crossing needed.'},
+  B11:{sz:1265,type:'2BHK',lift:'L-B2',stair:'ST-B1',liftName:'Centre Lift (L-B2)',
+       entry:'Enter Block B at the CENTRE entrance',
+       liftDir:'Walk to the lift lobby — L-B2 is embedded in the south row, between Flats 08 and 10.',
+       afterLift:'Exit lift, cross the corridor, then turn RIGHT. Walk past the Flat 09 doorway — Flat 11 is the second door on your LEFT hand side (north row).'},
+  B12:{sz:1265,type:'2BHK',lift:'L-B2',stair:'ST-B1',liftName:'Centre Lift (L-B2)',
+       entry:'Enter Block B at the CENTRE entrance',
+       liftDir:'Walk to the lift lobby — L-B2 is embedded in the south row, between Flats 08 and 10.',
+       afterLift:'Exit lift, turn RIGHT. Walk past Flat 10 — Flat 12 is the second door, same row.'},
+  B13:{sz:1265,type:'2BHK',lift:'L-B1',stair:'ST-B1',liftName:'East Lift (L-B1)',
+       entry:'Enter Block B at the EAST entrance (east end)',
+       liftDir:'Walk to the lift lobby — L-B1 is embedded in the south row, between Flats 16 and 18.',
+       afterLift:'Exit lift, cross the corridor, then turn LEFT. Walk past the Flat 15 doorway — Flat 13 is the second door on your RIGHT hand side (north row).'},
+  B14:{sz:1265,type:'2BHK',lift:'L-B1',stair:'ST-B1',liftName:'East Lift (L-B1)',
+       entry:'Enter Block B at the EAST entrance (east end)',
+       liftDir:'Walk to the lift lobby — L-B1 is embedded in the south row, between Flats 16 and 18.',
+       afterLift:'Exit lift, turn LEFT. Walk past Flat 16 — Flat 14 is the second door, same row.'},
+  B15:{sz:1265,type:'2BHK',lift:'L-B1',stair:'ST-B1',liftName:'East Lift (L-B1)',
+       entry:'Enter Block B at the EAST entrance (east end)',
+       liftDir:'Walk to the lift lobby — L-B1 is embedded in the south row, between Flats 16 and 18.',
+       afterLift:'Exit lift, cross the corridor, then turn LEFT. Flat 15 is the first door on your RIGHT hand side (north row).'},
+  B16:{sz:1265,type:'2BHK',lift:'L-B1',stair:'ST-B1',liftName:'East Lift (L-B1)',
+       entry:'Enter Block B at the EAST entrance (east end)',
+       liftDir:'Walk to the lift lobby — L-B1 is embedded in the south row, between Flats 16 and 18.',
+       afterLift:'Exit lift, turn LEFT. Flat 16 is the first door — same row, no corridor crossing needed.'},
+  B17:{sz:1265,type:'2BHK',lift:'L-B1',stair:'ST-B1',liftName:'East Lift (L-B1)',
+       entry:'Enter Block B at the EAST entrance (east end)',
+       liftDir:'Walk to the lift lobby — L-B1 is embedded in the south row, between Flats 16 and 18.',
+       afterLift:'Exit lift, cross the corridor, then turn RIGHT. Flat 17 is the first door on your LEFT hand side (north row).'},
+  B18:{sz:1265,type:'2BHK',lift:'L-B1',stair:'ST-B1',liftName:'East Lift (L-B1)',
+       entry:'Enter Block B at the EAST entrance (east end)',
+       liftDir:'Walk to the lift lobby — L-B1 is embedded in the south row, between Flats 16 and 18.',
+       afterLift:'Exit lift, turn RIGHT. Flat 18 is the first door — same row, no corridor crossing needed.'},
+
+  // ── BLOCK C ──
+  // One shared floor plan: Flat 01 (N-west) / Flat 03 (N-east) on the north row,
+  // Flat 02 (S-west) / Flat 04 (S-east) on the south row, an 8'0" corridor between
+  // them. ONE lift (L-C1), embedded in the south row between Flats 02 and 04.
+  // ONE staircase (ST-C1) at the west end of the corridor, next to Flat 01.
+  C01:{sz:2630,type:'4BHK',lift:'L-C1',stair:'ST-C1',liftName:'Lift (L-C1)',
+       entry:'Enter Block C at the main lobby entrance',
+       liftDir:'Walk to the lift lobby — L-C1 is embedded in the south row, between Flats 02 and 04.',
+       afterLift:'Exit lift, cross the corridor, then turn LEFT. Flat 01 is the first door on your RIGHT hand side (north row, west end, next to the staircase).'},
+  C02:{sz:2630,type:'4BHK',lift:'L-C1',stair:'ST-C1',liftName:'Lift (L-C1)',
+       entry:'Enter Block C at the main lobby entrance',
+       liftDir:'Walk to the lift lobby — L-C1 is embedded in the south row, between Flats 02 and 04.',
+       afterLift:'Exit lift, turn LEFT. Flat 02 is the first door — same row, no corridor crossing needed.'},
+  C03:{sz:2630,type:'4BHK',lift:'L-C1',stair:'ST-C1',liftName:'Lift (L-C1)',
+       entry:'Enter Block C at the main lobby entrance',
+       liftDir:'Walk to the lift lobby — L-C1 is embedded in the south row, between Flats 02 and 04.',
+       afterLift:'Exit lift, cross the corridor, then turn RIGHT. Flat 03 is the first door on your LEFT hand side (north row, east end).'},
+  C04:{sz:2630,type:'4BHK',lift:'L-C1',stair:'ST-C1',liftName:'Lift (L-C1)',
+       entry:'Enter Block C at the main lobby entrance',
+       liftDir:'Walk to the lift lobby — L-C1 is embedded in the south row, between Flats 02 and 04.',
+       afterLift:'Exit lift, turn RIGHT. Flat 04 is the first door — same row, no corridor crossing needed.'},
+
+  // ── BLOCK D ──
+  D01:{sz:1650,type:'3BHK',lift:'L-D2',liftName:'Centre Lift (L-D2)',
+       entry:'Enter Block D from the WEST SIDE — left column entrance',
+       liftDir:'Walk east — L-D2 is in the CENTRAL CORRIDOR between Col-1 and Col-2.',
+       afterLift:'Exit lift, turn LEFT. Flat 01 is at the TOP of Column 1 (north end).'},
+  D02:{sz:1650,type:'3BHK',lift:'L-D2',liftName:'Centre Lift (L-D2)',
+       entry:'Enter Block D from the WEST SIDE — left column entrance',
+       liftDir:'Walk east — L-D2 is in the CENTRAL CORRIDOR between Col-1 and Col-2.',
+       afterLift:'Exit lift, turn LEFT. Flat 02 is SECOND from top in Column 1.'},
+  D03:{sz:1650,type:'3BHK',lift:'L-D2',liftName:'Centre Lift (L-D2)',
+       entry:'Enter Block D from the WEST SIDE — left column entrance',
+       liftDir:'Walk east — L-D2 is in the CENTRAL CORRIDOR.',
+       afterLift:'Exit lift, turn LEFT. Flat 03 is MIDDLE of Column 1.'},
+  D04:{sz:1600,type:'3BHK',lift:'L-D2',liftName:'Centre Lift (L-D2)',
+       entry:'Enter Block D from the WEST SIDE — left column entrance',
+       liftDir:'Walk east — L-D2 is in the CENTRAL CORRIDOR.',
+       afterLift:'Exit lift, turn LEFT. Flat 04 is FOURTH from top in Column 1.'},
+  D05:{sz:1650,type:'3BHK',lift:'L-D2',liftName:'Centre Lift (L-D2)',
+       entry:'Enter Block D from the WEST SIDE — left column entrance',
+       liftDir:'Walk east — L-D2 is in the CENTRAL CORRIDOR.',
+       afterLift:'Exit lift, turn LEFT. Flat 05 is at the BOTTOM of Column 1 (south end).'},
+  D06:{sz:1600,type:'3BHK',lift:'L-D2',liftName:'Centre Lift (L-D2)',
+       entry:'Enter Block D — use the CENTRAL CORRIDOR entrance',
+       liftDir:'L-D2 is DIRECTLY IN FRONT at the central green courtyard entrance.',
+       afterLift:'Exit lift, turn RIGHT. Flat 06 is at the TOP of Column 2 (north end).'},
+  D07:{sz:1600,type:'3BHK',lift:'L-D2',liftName:'Centre Lift (L-D2)',
+       entry:'Enter Block D — use the CENTRAL CORRIDOR entrance',
+       liftDir:'L-D2 is DIRECTLY IN FRONT at the central green courtyard entrance.',
+       afterLift:'Exit lift, turn RIGHT. Flat 07 is at the BOTTOM of Column 2 (south end).'},
+  D08:{sz:1600,type:'3BHK',lift:'L-D1',liftName:'Right Lift (L-D1)',
+       entry:'Enter Block D from the EAST SIDE — right column entrance',
+       liftDir:'L-D1 is between Col-2 and Col-3, to your LEFT when facing the building.',
+       afterLift:'Exit lift, turn RIGHT. Flat 08 is at the TOP of Column 3 (north end).'},
+  D09:{sz:1600,type:'3BHK',lift:'L-D1',liftName:'Right Lift (L-D1)',
+       entry:'Enter Block D from the EAST SIDE — right column entrance',
+       liftDir:'L-D1 is between Col-2 and Col-3, to your LEFT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 09 is SECOND from top in Column 3.'},
+  D10:{sz:1600,type:'3BHK',lift:'L-D1',liftName:'Right Lift (L-D1)',
+       entry:'Enter Block D from the EAST SIDE — right column entrance',
+       liftDir:'L-D1 is between Col-2 and Col-3, to your LEFT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 10 is THIRD from top in Column 3.'},
+  D11:{sz:1600,type:'3BHK',lift:'L-D1',liftName:'Right Lift (L-D1)',
+       entry:'Enter Block D from the EAST SIDE — right column entrance',
+       liftDir:'L-D1 is between Col-2 and Col-3, to your LEFT.',
+       afterLift:'Exit lift, turn RIGHT. Flat 11 is at the BOTTOM of Column 3 (south end).'}
+};
+
+// Road directions from main entrance to each block
+const BLOCK_ROAD = {
+  A:[
+    '🚪 Pass through <strong>East Main Entrance</strong> — check in with security.',
+    '⬆️ Drive / walk <strong>straight north</strong> on the main internal road (~120 m).',
+    '↖️ At the large T-junction, <strong>turn LEFT (west)</strong>. Block B will be on your left.',
+    '⬆️ Continue north ~40 m — you will see <strong>Block A</strong> ahead, split into two large wings.',
+    '🏢 Choose your wing based on your flat number (West Wing: Flats 01–11 · East Wing: Flats 12–22).'
+  ],
+  B:[
+    '🚪 Pass through <strong>East Main Entrance</strong> — security check.',
+    '↖️ Immediately <strong>turn LEFT (west)</strong> — Block B is the long building running east-west directly ahead.',
+    '🏢 Walk or drive along the <strong>north face of Block B</strong> and find the entrance nearest to your flat.'
+  ],
+  C:[
+    '🚪 Pass through <strong>East Main Entrance</strong> — security check.',
+    '⬆️ Drive / walk <strong>straight north</strong> on the main road (~150 m).',
+    '↗️ <strong>Turn RIGHT</strong> at the junction near the Clubhouse (look for the PVR The Club sign).',
+    '➡️ Continue east ~30 m — <strong>Block C</strong> (two towers) is on your RIGHT.'
+  ],
+  D:[
+    '🚪 Pass through <strong>East Main Entrance</strong> — security check.',
+    '⬆️ Drive / walk <strong>straight north</strong> on the main road (~150 m).',
+    '↗️ <strong>Turn RIGHT</strong> at the junction near the Clubhouse.',
+    '➡️ Continue east, pass Block C — <strong>Block D</strong> is the larger L-shaped building further east.',
+    '🏢 Approach from the appropriate side based on your flat number (Column 1–West · Column 2–Centre · Column 3–East).'
+  ]
+};
+
+const AMENITIES = {
+  clubhouse:{name:'Clubhouse',icon:'🏛️',color:'#7ec8e3',
+    desc:'12,000 sq ft facility with Coffee Shop, Supermarket, Multi-Purpose Hall, Parlour, Guest Rooms, Yoga, Gym, Game Zone & Mini Theatre.',
+    steps:[
+      '🚪 Enter from <strong>East Main Entrance</strong> — security check.',
+      '⬆️ Walk / drive <strong>north</strong> on the main road for ~150 m.',
+      '↗️ <strong>Turn RIGHT</strong> at the junction — look for the large <strong>"PVR The Club"</strong> signboard.',
+      '🏛️ The <strong>Clubhouse</strong> is directly ahead — main entrance faces south.'
+    ]},
+  pool:{name:'Swimming Pool',icon:'🏊',color:'#3c86a0',
+    steps:[
+      '🚪 Enter from <strong>East Main Entrance</strong>.',
+      '⬆️ Walk north ~150 m on the main road.',
+      '↗️ <strong>Turn RIGHT</strong> at the Clubhouse junction.',
+      '🏊 The <strong>Swimming Pool</strong> is immediately to the <strong>south of the Clubhouse</strong> — you will see the blue pool deck.'
+    ]},
+  badminton:{name:'Badminton Court',icon:'🏸',color:'#7ec87e',
+    steps:[
+      '🚪 Enter from <strong>East Main Entrance</strong>.',
+      '⬆️ Walk north and <strong>turn LEFT</strong> at the Block A/B junction.',
+      '⬆️ Continue north — enter <strong>Block A West Wing</strong> courtyard through the main lobby.',
+      '🏸 The <strong>Badminton Court</strong> is inside the Block A courtyard — visible through the 75 ft wide internal corridor.'
+    ]},
+  yoga:{name:'Yoga Zone',icon:'🧘',color:'#c8a87e',
+    steps:[
+      '🚪 Enter from <strong>East Main Entrance</strong>.',
+      '⬆️ Walk north and <strong>turn LEFT</strong> at Block A/B junction.',
+      '⬆️ Enter <strong>Block A East Wing</strong> courtyard.',
+      '🧘 The <strong>Yoga Zone</strong> is in the open-air courtyard of Block A East Wing — north section.'
+    ]},
+  kidsplay:{name:"Kid's Play Area",icon:'🎪',color:'#e8a030',
+    steps:[
+      '🚪 Enter from <strong>East Main Entrance</strong>.',
+      '⬆️ Walk north and <strong>turn LEFT</strong> at Block A/B junction.',
+      '⬆️ Enter <strong>Block A East Wing</strong> courtyard.',
+      "🎪 The <strong>Kid's Play Area</strong> is in the south section of the Block A East Wing courtyard."
+    ]},
+  boxing:{name:'Box Cricket',icon:'🏏',color:'#a87e3e',
+    steps:[
+      '🚪 Enter from <strong>East Main Entrance</strong>.',
+      '↖️ Immediately turn LEFT and look to your <strong>far LEFT (north-west corner)</strong> of the compound.',
+      '🏏 The <strong>Box Cricket turf</strong> is at the north-west corner — blue-netted enclosure easily visible from the entrance road.'
+    ]},
+  opengym:{name:'Open Gym',icon:'🏋️',color:'#7ea8c8',
+    steps:[
+      '🚪 Enter from <strong>East Main Entrance</strong>.',
+      '⬆️ Walk north and <strong>turn LEFT</strong> at Block A/B junction.',
+      '🏋️ The <strong>Open Gym</strong> runs along the central <strong>green spine</strong> between the two wings of Block A — outdoor fitness equipment along the 44 ft wide green corridor.'
+    ]}
+};
+
+// Map coordinates for each individual flat position (same spot on every floor —
+// the map shows one representative floor plan per block). Used to point the
+// destination pin at the exact flat instead of just the block.
+const FLAT_XY = {
+  A:{'01':[655,158],'02':[655,332],'03':[655,442],'04':[655,570],'05':[655,710],
+     '06':[800,158],'07':[800,710],'08':[945,158],'09':[965,380],'10':[965,508],'11':[945,710],
+     '12':[1130,158],'13':[1130,332],'14':[1130,442],'15':[1130,570],'16':[1130,710],
+     '17':[1275,158],'18':[1275,710],'19':[1420,158],'20':[1435,380],'21':[1435,508],'22':[1420,710]},
+  B:{'01':[647.2,874],'02':[647.2,1014],'03':[771.7,874],'04':[771.7,1014],'05':[896.1,874],'06':[896.1,1014],
+     '07':[1019.5,874],'08':[1019.5,1014],'09':[1144,874],'10':[1144,1014],'11':[1268.5,874],'12':[1268.5,1014],
+     '13':[1392.9,874],'14':[1392.9,1014],'15':[1517.4,874],'16':[1517.4,1014],'17':[1640.8,874],'18':[1640.8,1014]},
+  C:{'01':[1613,404],'02':[1613,679],'03':[1749,404],'04':[1749,679]},
+  D:{'01':[1928,399],'02':[1928,523],'03':[1928,653],'04':[1928,778],'05':[1928,883],
+     '06':[2059,399],'07':[2059,891],'08':[2185,399],'09':[2187,566],'10':[2189,696],'11':[2191,880]}
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let S = { block:null, flat:null, floor:null, flatCode:null };
+
+// ─── BLOCK SELECT ────────────────────────────────────────────────────────────
+function selectBlock(blk){
+  clearAll();
+  S.block = blk; S.flat = null; S.floor = null; S.flatCode = null;
+  document.getElementById('bb-'+blk).classList.add('sel');
+  document.getElementById('bz-'+blk).classList.add('active');
+  // Show search row
+  const sr = document.getElementById('search-row');
+  const inp = document.getElementById('flat-search');
+  const errEl = document.getElementById('search-error');
+  const hint = document.getElementById('search-hint');
+  const m = BLOCK_META[blk];
+  inp.value = '';
+  inp.classList.remove('valid','invalid');
+  errEl.textContent = '';
+  errEl.className = 'search-error';
+  hint.innerHTML = `Floor 1–5 · Flats 01–${String(m.flats).padStart(2,'0')} · e.g. <strong>2${String(Math.ceil(m.flats/2)).padStart(2,'0')}</strong>`;
+  sr.classList.remove('hidden');
+  inp.focus();
+  // Draw route to block
+  const r = document.getElementById('route-path');
+  r.setAttribute('d', m.route);
+  r.classList.add('on');
+  document.getElementById('start-pin').style.opacity='1';
+  moveDestPin(m.dest[0], m.dest[1]);
+}
+
+// ─── FLAT ZONE SELECT (click a flat directly on the map) ───────────────────
+function selectFlatZone(blk, num){
+  selectBlock(blk);
+  document.getElementById('bz-'+blk).classList.remove('active'); // focus the flat, not the whole block
+  const fz = document.getElementById('fz-'+blk+num);
+  if(fz) fz.classList.add('picked');
+  const pxy = pinXY(blk, num);
+  if(pxy) moveDestPin(pxy[0], pxy[1]);
+  const r = document.getElementById('route-path');
+  r.setAttribute('d', buildFlatRoute(blk, num));
+  showToast(`Flat ${blk}-${num} selected — enter the floor (1–5) to see full directions`);
+}
+
+// ─── SEARCH / VALIDATE FLAT CODE ─────────────────────────────────────────────
+function handleSearch(val){
+  const inp = document.getElementById('flat-search');
+  const errEl = document.getElementById('search-error');
+  // Only digits
+  const clean = val.replace(/\D/g,'');
+  if(clean !== val){ inp.value = clean; val = clean; }
+  inp.classList.remove('valid','invalid');
+  errEl.textContent = '';
+  errEl.className = 'search-error';
+  if(val.length < 3) return;
+  const code = parseInt(val, 10);
+  const fl = Math.floor(code / 100);
+  const flatNum = code % 100;
+  const maxFlats = BLOCK_META[S.block].flats;
+  if(fl < 1 || fl > 5){
+    errEl.textContent = `Floor ${fl} doesn't exist — only floors 1–5`;
+    inp.classList.add('invalid'); return;
+  }
+  if(flatNum < 1 || flatNum > maxFlats){
+    errEl.textContent = `Flat ${String(flatNum).padStart(2,'0')} doesn't exist in Block ${S.block} — max is ${String(maxFlats).padStart(2,'0')}`;
+    inp.classList.add('invalid'); return;
+  }
+  // Valid — navigate
+  inp.classList.add('valid');
+  errEl.textContent = '✓ Found';
+  errEl.className = 'search-error ok';
+  S.flatCode = code;
+  S.floor = fl;
+  S.flat = String(flatNum).padStart(2,'0');
+  showNav(S.block, S.flat, S.floor, code);
+}
+
+// ─── NAVIGATION PANEL ────────────────────────────────────────────────────────
+function showNav(blk, num, fl, code){
+  const key = blk + num;
+  const fi = FLAT_INFO[key];
+  if(!fi){ showToast('Flat data not found'); return; }
+  const m = BLOCK_META[blk];
+  const roads = BLOCK_ROAD[blk];
+  const flatId = `${blk}-${code}`;   // e.g. A-307
+
+  let roadSteps = roads.map((s,i)=>`
+    <div class="step ${i===roads.length-1?'highlight':''}">
+      <div class="step-num">${i+1}</div>
+      <div class="step-text">${s}</div>
+    </div>`).join('');
+
+  const entryText = fi.wingEntry || fi.entry || '';
+  let n = roads.length;
+
+  // Point the destination pin at this exact flat (same spot regardless of floor),
+  // focus just the flat (not the whole block), and route the dashes through it.
+  document.getElementById('bz-'+blk).classList.remove('active');
+  document.querySelectorAll('.flat-zone').forEach(z=>z.classList.remove('picked'));
+  document.getElementById('fz-'+key)?.classList.add('picked');
+  const pxy = pinXY(blk, num);
+  if(pxy) moveDestPin(pxy[0], pxy[1]);
+  document.getElementById('route-path').setAttribute('d', buildFlatRoute(blk, num));
+
+  setPanel(`📍 Flat ${flatId}`,`
+    <div class="flat-summary">
+      <div class="fs-id">Flat ${flatId}</div>
+      <div class="fs-detail">${fi.type} · ${fi.sz} sft · Floor ${fl} · Flat position ${num}</div>
+    </div>
+    <div class="nav-section-title">🗺 From Main Gate</div>
+    ${roadSteps}
+    <div class="step highlight">
+      <div class="step-num">${n+1}</div>
+      <div class="step-text">🚪 <strong>${entryText}</strong></div>
+    </div>
+    <div class="step">
+      <div class="step-num">${n+2}</div>
+      <div class="step-text">⬇ You are now at <strong>Ground Floor (Cellar)</strong> — Parking, Lifts &amp; Stairs only. No residential flats here.</div>
+    </div>
+    <div class="step lift-step">
+      <div class="step-num">${n+3}</div>
+      <div class="step-text">🛗 <strong>${fi.liftDir}</strong><br><span class="lift-tag">Lift: ${fi.liftName}</span></div>
+    </div>
+    <div class="step lift-step">
+      <div class="step-num">${n+4}</div>
+      <div class="step-text">🔢 Inside the lift, press:<br><span class="btn-tag">FLOOR ${fl}</span><br>The lift takes you to <strong>Floor ${fl}</strong>.</div>
+    </div>
+    <div class="step dest-step">
+      <div class="step-num">${n+5}</div>
+      <div class="step-text">🏠 ${fi.afterLift}<br><strong>You have arrived at Flat ${flatId}.</strong></div>
+    </div>
+  `, true);  // true = enable share buttons
+}
+
+// ─── AMENITY SELECT ──────────────────────────────────────────────────────────
+function selectAmenity(key){
+  clearAll();
+  const a = AMENITIES[key];
+  if(!a) return;
+  document.querySelector(`#az-${key}`)?.classList.add('picked');
+  document.querySelectorAll('.leg-icon').forEach(el=>{
+    el.classList.toggle('active', el.getAttribute('onclick')===`selectAmenity('${key}')`);
+  });
+  let steps = a.steps.map((s,i)=>`
+    <div class="step ${i===a.steps.length-1?'dest-step':''}">
+      <div class="step-num">${i+1}</div>
+      <div class="step-text">${s}</div>
+    </div>`).join('');
+  setPanel(`${a.icon} ${a.name}`,`
+    <div class="amenity-icon-big">${a.icon}</div>
+    <div class="amenity-desc">${a.desc||''}</div>
+    <div class="nav-section-title">🗺 Directions from Main Gate</div>
+    ${steps}
+  `);
+  // Route to amenity area
+  const aRoutes = {
+    clubhouse:'M1786,1090 L1786,800 L1645,800 L1645,200',
+    pool:'M1786,1090 L1786,800 L1645,800 L1630,350',
+    badminton:'M1786,1090 L1786,800 L843,800 L843,514',
+    yoga:'M1786,1090 L1786,800 L1310,800 L1310,362',
+    kidsplay:'M1786,1090 L1786,800 L1312,800 L1312,562',
+    boxing:'M1786,1090 L568,1090 L568,126',
+    opengym:'M1786,1090 L1786,800 L1040,800 L1040,440'
+  };
+  const r = document.getElementById('route-path');
+  r.setAttribute('d', aRoutes[key]||'');
+  r.classList.add('on');
+  document.getElementById('start-pin').style.opacity='1';
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function setShareButtons(enabled){
+  document.getElementById('btn-share-link').disabled = !enabled;
+  document.getElementById('btn-share-wa').disabled = !enabled;
+}
+
+function setPanel(title, html, enableShare){
+  document.getElementById('panel-head-title').textContent = title;
+  document.getElementById('panel-body').innerHTML = html;
+  document.getElementById('nav-panel').classList.remove('hidden');
+  setShareButtons(!!enableShare);
+}
+
+function closePanel(){
+  document.getElementById('nav-panel').classList.add('hidden');
+  setShareButtons(false);
+}
+
+function clearAll(){
+  document.querySelectorAll('.block-zone').forEach(z=>z.classList.remove('active'));
+  document.querySelectorAll('.amenity-zone').forEach(z=>z.classList.remove('picked'));
+  document.querySelectorAll('.flat-zone').forEach(z=>z.classList.remove('picked'));
+  document.querySelectorAll('.leg-icon').forEach(z=>z.classList.remove('active'));
+  document.querySelectorAll('.blk-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('route-path').classList.remove('on');
+  document.getElementById('start-pin').style.opacity='0';
+  document.getElementById('dest-pin').style.opacity='0';
+  document.getElementById('search-row').classList.add('hidden');
+  document.getElementById('nav-panel').classList.add('hidden');
+  setShareButtons(false);
+  S = {block:null, flat:null, floor:null, flatCode:null};
+}
+
+// ─── SHARE ───────────────────────────────────────────────────────────────────
+function shareFlatLink(){
+  if(!S.flatCode || !S.block) return;
+  const flatId = `${S.block}-${S.flatCode}`;
+  const url = window.location.href.split('?')[0] + `?flat=${flatId}`;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard!'));
+  } else {
+    showToast('Copy this: ' + url);
+  }
+}
+
+function shareWhatsApp(){
+  if(!S.flatCode || !S.block) return;
+  const flatId = `${S.block}-${S.flatCode}`;
+  const msg = `🏠 *PVR Elite — Navigation Guide*\n\n*Flat:* ${flatId} (Floor ${S.floor}, Flat ${S.flat})\n📍 *Location:* Kanuru, Vijayawada\n\nOpen the navigation guide and select *Block ${S.block}* → enter code *${S.flatCode}* for step-by-step directions inside the compound.`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function moveDestPin(cx,cy){
+  document.getElementById('dest-pin').setAttribute('transform', `translate(${cx},${cy})`);
+  document.getElementById('dest-pin').style.opacity='1';
+}
+
+// Nudges the pin toward the corridor-facing edge of a flat's zone instead of
+// dead-center (so it doesn't sit on top of the flat's size/number labels).
+function pinXY(blk, num){
+  const xy = FLAT_XY[blk] && FLAT_XY[blk][num];
+  if(!xy) return null;
+  let [x,y] = xy;
+  if(blk==='B') y += (y<950 ? 20 : -20);
+  else if(blk==='C') y += (y<540 ? 55 : -55);
+  return [x,y];
+}
+
+// Builds a route path that only travels the outdoor road, then the corridor,
+// then a straight drop/rise into the target flat's column — never diagonally
+// across other flats. Precise for B/C (which have a mapped corridor); A/D fall
+// back to a straight extension since their corridors aren't mapped yet.
+function buildFlatRoute(blk, num){
+  const base = BLOCK_META[blk].route;
+  const xy = FLAT_XY[blk] && FLAT_XY[blk][num];
+  if(!xy) return base;
+  const [fx, fy] = xy;
+  if(blk==='B') return `${base} L1144,955 L${fx},955 L${fx},${fy}`;
+  if(blk==='C'){
+    if(fy < 540) return `${base} L1655,540 L${fx},540 L${fx},${fy}`;
+    return `${base} L${fx},580 L${fx},${fy}`;
+  }
+  return `${base} L${fx},${fy}`;
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('hidden');
+}
+
+let _tt;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+showToast('Tap any Block label or legend icon to start navigating');
+</script>
+</body>
+</html>
